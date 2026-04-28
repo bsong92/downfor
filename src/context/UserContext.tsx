@@ -1,10 +1,9 @@
 "use client";
 
 import { createContext, useContext } from "react";
-import { MOCK_USER } from "@/lib/mock-user";
 import type { Profile } from "@/types/database";
 
-const UserContext = createContext<Profile | null>(MOCK_USER);
+const UserContext = createContext<Profile | null>(null);
 
 export function useUser() {
   return useContext(UserContext);

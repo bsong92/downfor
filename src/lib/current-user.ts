@@ -1,7 +1,6 @@
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { createServiceClient } from "@/lib/supabase-server";
-import { MOCK_USER } from "@/lib/mock-user";
 import type { Profile } from "@/types/database";
 
 export function hasClerkCredentials() {
@@ -53,7 +52,7 @@ async function syncProfileFromClerk(): Promise<Profile | null> {
 
 export async function getCurrentProfile(): Promise<Profile | null> {
   if (!hasClerkCredentials()) {
-    return MOCK_USER;
+    return null;
   }
 
   try {

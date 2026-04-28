@@ -13,25 +13,35 @@ export async function createActivity(data: {
   location: string;
   spots: string;
 }) {
-  const supabase = createServiceClient();
-  const user = await getRequiredProfile();
-  const activityDate = new Date(`${data.date}T${data.time}`).toISOString();
+  try {
+    const supabase = createServiceClient();
+    const user = await getRequiredProfile();
+    const activityDate = new Date(`${data.date}T${data.time}`);
 
-  const { error } = await supabase.from("activities").insert({
-    poster_id: user.id,
-    category: data.category,
-    title: data.title,
-    description: data.description || null,
-    activity_date: activityDate,
-    location: data.location,
-    spots_available: parseInt(data.spots, 10),
-  });
+    if (Number.isNaN(activityDate.getTime())) {
+      return { success: false, error: "Please enter a valid date and time." };
+    }
 
-  if (error) return { success: false, error: error.message };
+    const { error } = await supabase.from("activities").insert({
+      poster_id: user.id,
+      category: data.category,
+      title: data.title,
+      description: data.description || null,
+      activity_date: activityDate.toISOString(),
+      location: data.location,
+      spots_available: parseInt(data.spots, 10),
+    });
 
-  revalidatePath("/feed");
-  revalidatePath("/profile");
-  return { success: true };
+    if (error) return { success: false, error: error.message };
+
+    revalidatePath("/feed");
+    revalidatePath("/profile");
+    return { success: true };
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Something went wrong while posting.";
+    return { success: false, error: message };
+  }
 }
 
 // Used as a form action (must return void)

@@ -10,6 +10,7 @@ import { createActivity } from "@/app/actions";
 export default function CreatePage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState({
     category: "workout",
     title: "",
@@ -27,10 +28,19 @@ export default function CreatePage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    const result = await createActivity(form);
-    if (result.success) {
-      router.push("/feed");
-    } else {
+    setError(null);
+
+    try {
+      const result = await createActivity(form);
+      if (result.success) {
+        router.push("/feed");
+        return;
+      }
+
+      setError(result.error ?? "Unable to post activity.");
+      setLoading(false);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Unable to post activity.");
       setLoading(false);
     }
   }
@@ -41,6 +51,12 @@ export default function CreatePage() {
 
       <div className="max-w-xl mx-auto px-4 py-8">
         <h1 className="text-xl font-bold text-gray-900 mb-6">Post an activity</h1>
+
+        {error ? (
+          <div className="mb-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {error}
+          </div>
+        ) : null}
 
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Category */}
