@@ -109,7 +109,9 @@ export async function updateProfile(data: {
     console.log("updateProfile - incoming data:", data);
 
     // Split updates: interests needs special handling in Postgres
-    const { error: error1 } = await supabase
+    console.log("Updating user ID:", user.id);
+
+    const { data: updateResult, error: error1 } = await supabase
       .from("profiles")
       .update({
         name: data.name || "",
@@ -117,7 +119,10 @@ export async function updateProfile(data: {
         photo_url: data.photo_url ? data.photo_url.trim() : null,
         updated_at: new Date().toISOString(),
       })
-      .eq("id", user.id);
+      .eq("id", user.id)
+      .select();
+
+    console.log("Update result:", { data: updateResult, error: error1 });
 
     if (error1) {
       console.error("Error updating profile fields:", error1);
