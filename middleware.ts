@@ -1,6 +1,21 @@
 import { clerkMiddleware } from "@clerk/nextjs/server";
+import { NextResponse, type NextRequest } from "next/server";
 
-export default clerkMiddleware();
+const clerkHandler = clerkMiddleware();
+
+function hasClerkCredentials() {
+  return Boolean(
+    process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY && process.env.CLERK_SECRET_KEY
+  );
+}
+
+export default function middleware(request: NextRequest, event: Parameters<typeof clerkHandler>[1]) {
+  if (!hasClerkCredentials()) {
+    return NextResponse.next();
+  }
+
+  return clerkHandler(request, event);
+}
 
 export const config = {
   matcher: [
