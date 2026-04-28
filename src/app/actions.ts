@@ -68,3 +68,35 @@ export async function updateRequestStatus(
     .eq("id", requestId);
   revalidatePath(`/activity/${activityId}`);
 }
+
+export async function updateProfile(data: {
+  name: string;
+  bio: string;
+  photo_url: string;
+  interests: string[];
+}) {
+  try {
+    const supabase = createServiceClient();
+    const user = await getRequiredProfile();
+
+    const { error } = await supabase
+      .from("profiles")
+      .update({
+        name: data.name,
+        bio: data.bio || null,
+        photo_url: data.photo_url || null,
+        interests: data.interests,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", user.id);
+
+    if (error) return { success: false, error: error.message };
+
+    revalidatePath("/profile");
+    return { success: true };
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Something went wrong while updating profile.";
+    return { success: false, error: message };
+  }
+}

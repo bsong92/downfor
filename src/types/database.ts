@@ -4,6 +4,7 @@ export type Profile = {
   name: string;
   email: string;
   photo_url: string | null;
+  bio: string | null;
   interests: string[];
   created_at: string;
   updated_at: string;
