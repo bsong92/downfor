@@ -1,15 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { CATEGORIES } from "@/types/database";
 import type { Profile } from "@/types/database";
 import { getCategoryConfig } from "@/components/CategoryBadge";
-import { updateProfile } from "@/app/actions";
+import { updateProfile, uploadProfilePhoto } from "@/app/actions";
 
 export function ProfileClient({ initialUser }: { initialUser: Profile }) {
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [customInterestInput, setCustomInterestInput] = useState("");
   const [form, setForm] = useState({
     name: initialUser.name,
     bio: initialUser.bio || "",
@@ -26,6 +29,35 @@ export function ProfileClient({ initialUser }: { initialUser: Profile }) {
       ? form.interests.filter((i) => i !== interest)
       : [...form.interests, interest]
     );
+  }
+
+  function addCustomInterest(interest: string) {
+    const trimmed = interest.trim().toLowerCase();
+    if (trimmed && !form.interests.includes(trimmed)) {
+      set("interests", [...form.interests, trimmed]);
+    }
+    setCustomInterestInput("");
+  }
+
+  function removeInterest(interest: string) {
+    set("interests", form.interests.filter((i) => i !== interest));
+  }
+
+  async function handlePhotoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingPhoto(true);
+    setError(null);
+
+    const result = await uploadProfilePhoto(file);
+    if (result.success && result.photoUrl) {
+      set("photo_url", result.photoUrl);
+    } else {
+      setError(result.error ?? "Unable to upload photo.");
+    }
+    setUploadingPhoto(false);
+    if (fileInputRef.current) fileInputRef.current.value = "";
   }
 
   async function handleSave() {
@@ -118,24 +150,42 @@ export function ProfileClient({ initialUser }: { initialUser: Profile }) {
               />
             </div>
 
-            {/* Photo URL */}
+            {/* Photo Upload */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Photo URL <span className="text-gray-400 font-normal">optional</span>
+                Photo <span className="text-gray-400 font-normal">optional</span>
               </label>
+              <div className="flex items-center gap-3">
+                {form.photo_url && (
+                  <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={form.photo_url} alt="Preview" className="w-full h-full object-cover" />
+                  </div>
+                )}
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploadingPhoto}
+                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors disabled:opacity-50"
+                >
+                  {uploadingPhoto ? "Uploading..." : "Choose Photo"}
+                </button>
+              </div>
               <input
-                type="url"
-                value={form.photo_url}
-                onChange={(e) => set("photo_url", e.target.value)}
-                placeholder="https://example.com/photo.jpg"
-                className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent"
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handlePhotoUpload}
+                className="hidden"
               />
             </div>
 
             {/* Interests */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Interests</label>
-              <div className="flex gap-2 flex-wrap">
+
+              {/* Predefined interests */}
+              <div className="flex gap-2 flex-wrap mb-3">
                 {CATEGORIES.map((cat) => {
                   const c = getCategoryConfig(cat);
                   const selected = form.interests.includes(cat);
@@ -155,6 +205,39 @@ export function ProfileClient({ initialUser }: { initialUser: Profile }) {
                   );
                 })}
               </div>
+
+              {/* Custom interests display */}
+              {form.interests.some((i) => !CATEGORIES.includes(i as any)) && (
+                <div className="mb-3 flex flex-wrap gap-2">
+                  {form.interests
+                    .filter((i) => !CATEGORIES.includes(i as any))
+                    .map((interest) => (
+                      <button
+                        key={interest}
+                        type="button"
+                        onClick={() => removeInterest(interest)}
+                        className="px-3 py-1.5 rounded-full text-sm font-medium bg-blue-100 text-blue-700 border border-blue-200 hover:bg-blue-200 transition-colors"
+                      >
+                        {interest} ✕
+                      </button>
+                    ))}
+                </div>
+              )}
+
+              {/* Custom interest input */}
+              <input
+                type="text"
+                value={customInterestInput}
+                onChange={(e) => setCustomInterestInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    addCustomInterest(customInterestInput);
+                  }
+                }}
+                placeholder="Type interest and press Enter to add custom ones"
+                className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent"
+              />
             </div>
 
             {/* Buttons */}
@@ -162,7 +245,7 @@ export function ProfileClient({ initialUser }: { initialUser: Profile }) {
               <button
                 type="button"
                 onClick={handleSave}
-                disabled={loading}
+                disabled={loading || uploadingPhoto}
                 className="flex-1 bg-indigo-600 text-white py-2 rounded-lg font-semibold text-sm hover:bg-indigo-700 transition-colors disabled:opacity-50"
               >
                 {loading ? "Saving..." : "Save"}
@@ -172,6 +255,7 @@ export function ProfileClient({ initialUser }: { initialUser: Profile }) {
                 onClick={() => {
                   setIsEditing(false);
                   setError(null);
+                  setCustomInterestInput("");
                   setForm({
                     name: initialUser.name,
                     bio: initialUser.bio || "",
@@ -179,7 +263,7 @@ export function ProfileClient({ initialUser }: { initialUser: Profile }) {
                     interests: initialUser.interests,
                   });
                 }}
-                disabled={loading}
+                disabled={loading || uploadingPhoto}
                 className="px-4 py-2 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-50"
               >
                 Cancel

@@ -4,6 +4,11 @@ import { createServiceClient } from "@/lib/supabase-server";
 import { getRequiredProfile } from "@/lib/current-user";
 import { revalidatePath } from "next/cache";
 
+async function fileToBuffer(file: File): Promise<Buffer> {
+  const arrayBuffer = await file.arrayBuffer();
+  return Buffer.from(arrayBuffer);
+}
+
 export async function createActivity(data: {
   category: string;
   title: string;
@@ -67,6 +72,28 @@ export async function updateRequestStatus(
     .update({ status, updated_at: new Date().toISOString() })
     .eq("id", requestId);
   revalidatePath(`/activity/${activityId}`);
+}
+
+export async function uploadProfilePhoto(file: File) {
+  try {
+    const user = await getRequiredProfile();
+    const supabase = createServiceClient();
+
+    const fileBuffer = await fileToBuffer(file);
+    const filename = `${user.id}-${Date.now()}-${file.name}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("profile-photos")
+      .upload(filename, fileBuffer, { contentType: file.type });
+
+    if (uploadError) return { success: false, error: uploadError.message };
+
+    const { data } = supabase.storage.from("profile-photos").getPublicUrl(filename);
+    return { success: true, photoUrl: data.publicUrl };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unable to upload photo.";
+    return { success: false, error: message };
+  }
 }
 
 export async function updateProfile(data: {
