@@ -20,6 +20,7 @@ export function ProfileClient({ initialUser }: { initialUser: Profile }) {
     bio: initialUser.bio || "",
     photo_url: initialUser.photo_url || "",
     interests: initialUser.interests,
+    public_profile: initialUser.public_profile,
   });
 
   // Load draft from localStorage on mount
@@ -278,6 +279,21 @@ export function ProfileClient({ initialUser }: { initialUser: Profile }) {
               />
             </div>
 
+            {/* Privacy toggle */}
+            <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 border border-gray-200">
+              <input
+                type="checkbox"
+                id="public-profile"
+                checked={form.public_profile}
+                onChange={(e) => set("public_profile", e.target.checked)}
+                className="w-4 h-4 text-indigo-600 rounded cursor-pointer"
+              />
+              <label htmlFor="public-profile" className="flex-1 cursor-pointer">
+                <p className="text-sm font-medium text-gray-900">Show on Members page</p>
+                <p className="text-xs text-gray-500">Other users can see your profile</p>
+              </label>
+            </div>
+
             {/* Buttons */}
             <div className="flex gap-2 pt-2">
               <button
@@ -300,6 +316,7 @@ export function ProfileClient({ initialUser }: { initialUser: Profile }) {
                     bio: initialUser.bio || "",
                     photo_url: initialUser.photo_url || "",
                     interests: initialUser.interests,
+                    public_profile: initialUser.public_profile,
                   });
                 }}
                 disabled={loading || uploadingPhoto}

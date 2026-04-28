@@ -6,6 +6,7 @@ export type Profile = {
   photo_url: string | null;
   bio: string | null;
   interests: string[];
+  public_profile: boolean;
   created_at: string;
   updated_at: string;
 };

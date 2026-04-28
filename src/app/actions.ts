@@ -101,6 +101,7 @@ export async function updateProfile(data: {
   bio: string;
   photo_url: string;
   interests: string[];
+  public_profile: boolean;
 }) {
   try {
     const supabase = createServiceClient();
@@ -117,6 +118,7 @@ export async function updateProfile(data: {
         name: data.name || "",
         bio: data.bio ? data.bio.trim() : null,
         photo_url: data.photo_url ? data.photo_url.trim() : null,
+        public_profile: data.public_profile,
         updated_at: new Date().toISOString(),
       })
       .eq("id", user.id)
