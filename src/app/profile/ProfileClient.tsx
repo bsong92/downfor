@@ -55,7 +55,7 @@ export function ProfileClient({ initialUser }: { initialUser: Profile }) {
     }
   }, [form, isEditing]);
 
-  function set(field: string, value: string | string[]) {
+  function set(field: string, value: string | string[] | boolean) {
     setForm((prev) => ({ ...prev, [field]: value }));
   }
 
