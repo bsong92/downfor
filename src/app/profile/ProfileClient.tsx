@@ -25,20 +25,28 @@ export function ProfileClient({ initialUser }: { initialUser: Profile }) {
   // Load draft from localStorage on mount
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const draft = localStorage.getItem(STORAGE_KEY);
-    if (draft) {
-      try {
-        setForm(JSON.parse(draft));
-      } catch {
-        // Ignore parse errors
+    try {
+      const draft = localStorage.getItem(STORAGE_KEY);
+      if (draft) {
+        const parsed = JSON.parse(draft);
+        setForm(parsed);
+        console.log("Loaded draft from localStorage:", parsed);
       }
+    } catch (e) {
+      console.error("Failed to load draft:", e);
     }
   }, []);
 
   // Save form to localStorage whenever it changes (only while editing)
   useEffect(() => {
     if (!isEditing) return;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(form));
+    try {
+      const serialized = JSON.stringify(form);
+      localStorage.setItem(STORAGE_KEY, serialized);
+      console.log("Saved form to localStorage");
+    } catch (e) {
+      console.error("Failed to save to localStorage:", e);
+    }
   }, [form, isEditing]);
 
   function set(field: string, value: string | string[]) {
