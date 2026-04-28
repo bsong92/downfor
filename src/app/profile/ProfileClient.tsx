@@ -98,7 +98,10 @@ export function ProfileClient({ initialUser }: { initialUser: Profile }) {
     setLoading(true);
     setError(null);
 
+    console.log("Saving form to database:", form);
     const result = await updateProfile(form);
+    console.log("Save result:", result);
+
     if (result.success) {
       localStorage.removeItem(STORAGE_KEY);
       setIsEditing(false);

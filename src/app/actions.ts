@@ -106,7 +106,9 @@ export async function updateProfile(data: {
     const supabase = createServiceClient();
     const user = await getRequiredProfile();
 
-    const { error } = await supabase
+    console.log("updateProfile called with data:", data);
+
+    const { data: updateData, error } = await supabase
       .from("profiles")
       .update({
         name: data.name,
@@ -115,7 +117,10 @@ export async function updateProfile(data: {
         interests: data.interests,
         updated_at: new Date().toISOString(),
       })
-      .eq("id", user.id);
+      .eq("id", user.id)
+      .select();
+
+    console.log("Update result:", { data: updateData, error });
 
     if (error) return { success: false, error: error.message };
 
@@ -124,6 +129,7 @@ export async function updateProfile(data: {
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Something went wrong while updating profile.";
+    console.error("updateProfile error:", message);
     return { success: false, error: message };
   }
 }
