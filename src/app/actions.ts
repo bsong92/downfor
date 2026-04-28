@@ -21,7 +21,18 @@ export async function createActivity(data: {
   try {
     const supabase = createServiceClient();
     const user = await getRequiredProfile();
-    const activityDate = new Date(`${data.date}T${data.time}`);
+
+    const [year, month, day] = data.date.split("-");
+    const [hours, minutes] = data.time.split(":");
+    const activityDate = new Date(
+      Date.UTC(
+        parseInt(year),
+        parseInt(month) - 1,
+        parseInt(day),
+        parseInt(hours),
+        parseInt(minutes)
+      )
+    );
 
     if (Number.isNaN(activityDate.getTime())) {
       return { success: false, error: "Please enter a valid date and time." };
@@ -71,7 +82,27 @@ export async function updateRequestStatus(
     .from("join_requests")
     .update({ status, updated_at: new Date().toISOString() })
     .eq("id", requestId);
+
+  if (status === "approved") {
+    const { data: activity } = await supabase
+      .from("activities")
+      .select("spots_available")
+      .eq("id", activityId)
+      .single();
+
+    if (activity && activity.spots_available > 0) {
+      await supabase
+        .from("activities")
+        .update({
+          spots_available: activity.spots_available - 1,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", activityId);
+    }
+  }
+
   revalidatePath(`/activity/${activityId}`);
+  revalidatePath("/feed");
 }
 
 export async function updateActivity(activityId: string, data: {
@@ -98,7 +129,17 @@ export async function updateActivity(activityId: string, data: {
       return { success: false, error: "Not authorized to edit this activity" };
     }
 
-    const activityDate = new Date(`${data.date}T${data.time}`);
+    const [year, month, day] = data.date.split("-");
+    const [hours, minutes] = data.time.split(":");
+    const activityDate = new Date(
+      Date.UTC(
+        parseInt(year),
+        parseInt(month) - 1,
+        parseInt(day),
+        parseInt(hours),
+        parseInt(minutes)
+      )
+    );
     if (Number.isNaN(activityDate.getTime())) {
       return { success: false, error: "Please enter a valid date and time." };
     }
