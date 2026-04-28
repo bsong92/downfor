@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Navbar } from "@/components/Navbar";
 import { CATEGORIES } from "@/types/database";
 import { getCategoryConfig } from "@/components/CategoryBadge";
+import { createActivity } from "@/app/actions";
 
 export default function CreatePage() {
   const router = useRouter();
@@ -26,9 +27,12 @@ export default function CreatePage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    // TODO: save to Supabase
-    await new Promise((r) => setTimeout(r, 500)); // simulate save
-    router.push("/feed");
+    const result = await createActivity(form);
+    if (result.success) {
+      router.push("/feed");
+    } else {
+      setLoading(false);
+    }
   }
 
   return (
