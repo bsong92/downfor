@@ -78,27 +78,47 @@ export async function updateRequestStatus(
   activityId: string
 ): Promise<void> {
   const supabase = createServiceClient();
+
+  // Get current request status to check if we're revoking an approval
+  const { data: currentRequest } = await supabase
+    .from("join_requests")
+    .select("status")
+    .eq("id", requestId)
+    .single();
+
   await supabase
     .from("join_requests")
     .update({ status, updated_at: new Date().toISOString() })
     .eq("id", requestId);
 
-  if (status === "approved") {
-    const { data: activity } = await supabase
-      .from("activities")
-      .select("spots_available")
-      .eq("id", activityId)
-      .single();
+  const { data: activity } = await supabase
+    .from("activities")
+    .select("spots_available")
+    .eq("id", activityId)
+    .single();
 
-    if (activity && activity.spots_available > 0) {
-      await supabase
-        .from("activities")
-        .update({
-          spots_available: activity.spots_available - 1,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", activityId);
-    }
+  if (status === "approved" && activity && activity.spots_available > 0) {
+    // Approving a request: decrement spots
+    await supabase
+      .from("activities")
+      .update({
+        spots_available: activity.spots_available - 1,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", activityId);
+  } else if (
+    status === "declined" &&
+    currentRequest?.status === "approved" &&
+    activity
+  ) {
+    // Revoking an approval: increment spots back
+    await supabase
+      .from("activities")
+      .update({
+        spots_available: activity.spots_available + 1,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", activityId);
   }
 
   revalidatePath(`/activity/${activityId}`);

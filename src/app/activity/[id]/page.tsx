@@ -199,7 +199,7 @@ export default async function ActivityDetailPage({
                 {resolvedRequests.map((req) => (
                   <div
                     key={req.id}
-                    className="bg-white rounded-xl border border-gray-100 p-4 flex items-center gap-3 opacity-60"
+                    className="bg-white rounded-xl border border-gray-100 p-4 flex items-center gap-3"
                   >
                     <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-sm font-semibold text-gray-500 shrink-0">
                       {req.requester.name.charAt(0)}
@@ -209,15 +209,29 @@ export default async function ActivityDetailPage({
                         {req.requester.name}
                       </p>
                     </div>
-                    <span
-                      className={`text-xs font-semibold px-2 py-1 rounded-full ${
-                        req.status === "approved"
-                          ? "bg-green-100 text-green-700"
-                          : "bg-gray-100 text-gray-500"
-                      }`}
-                    >
-                      {req.status}
-                    </span>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span
+                        className={`text-xs font-semibold px-2 py-1 rounded-full ${
+                          req.status === "approved"
+                            ? "bg-green-100 text-green-700"
+                            : "bg-gray-100 text-gray-500"
+                        }`}
+                      >
+                        {req.status}
+                      </span>
+                      {req.status === "approved" && (
+                        <form
+                          action={updateRequestStatus.bind(null, req.id, "declined", id)}
+                        >
+                          <button
+                            type="submit"
+                            className="px-2.5 py-1 bg-gray-100 text-gray-600 text-xs font-semibold rounded-lg hover:bg-gray-200 transition-colors"
+                          >
+                            Revoke
+                          </button>
+                        </form>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
