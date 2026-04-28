@@ -1,10 +1,12 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { CATEGORIES } from "@/types/database";
 import type { Profile } from "@/types/database";
 import { getCategoryConfig } from "@/components/CategoryBadge";
 import { updateProfile, uploadProfilePhoto } from "@/app/actions";
+
+const STORAGE_KEY = "profile-draft";
 
 export function ProfileClient({ initialUser }: { initialUser: Profile }) {
   const [isEditing, setIsEditing] = useState(false);
@@ -19,6 +21,25 @@ export function ProfileClient({ initialUser }: { initialUser: Profile }) {
     photo_url: initialUser.photo_url || "",
     interests: initialUser.interests,
   });
+
+  // Load draft from localStorage on mount
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const draft = localStorage.getItem(STORAGE_KEY);
+    if (draft) {
+      try {
+        setForm(JSON.parse(draft));
+      } catch {
+        // Ignore parse errors
+      }
+    }
+  }, []);
+
+  // Save form to localStorage whenever it changes (only while editing)
+  useEffect(() => {
+    if (!isEditing) return;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(form));
+  }, [form, isEditing]);
 
   function set(field: string, value: string | string[]) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -66,6 +87,7 @@ export function ProfileClient({ initialUser }: { initialUser: Profile }) {
 
     const result = await updateProfile(form);
     if (result.success) {
+      localStorage.removeItem(STORAGE_KEY);
       setIsEditing(false);
     } else {
       setError(result.error ?? "Unable to update profile.");
@@ -256,6 +278,7 @@ export function ProfileClient({ initialUser }: { initialUser: Profile }) {
                   setIsEditing(false);
                   setError(null);
                   setCustomInterestInput("");
+                  // Revert to saved values, but keep localStorage for next time
                   setForm({
                     name: initialUser.name,
                     bio: initialUser.bio || "",
