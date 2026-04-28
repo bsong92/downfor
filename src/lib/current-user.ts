@@ -35,7 +35,6 @@ async function syncProfileFromClerk(): Promise<Profile | null> {
         clerk_user_id: user.id,
         name: getDisplayName(user),
         email: email ?? `${user.id}@example.invalid`,
-        photo_url: user.imageUrl ?? null,
         updated_at: new Date().toISOString(),
       },
       { onConflict: "clerk_user_id" }
