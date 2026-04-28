@@ -106,24 +106,29 @@ export async function updateProfile(data: {
     const supabase = createServiceClient();
     const user = await getRequiredProfile();
 
-    console.log("updateProfile called with data:", data);
+    console.log("updateProfile called with:", { name: data.name, bio: data.bio, interests: data.interests });
 
-    const { data: updateData, error } = await supabase
+    const updatePayload = {
+      name: data.name,
+      bio: data.bio.trim() || null,
+      photo_url: data.photo_url ? data.photo_url.trim() : null,
+      interests: data.interests && data.interests.length > 0 ? data.interests : [],
+      updated_at: new Date().toISOString(),
+    };
+
+    console.log("Update payload:", updatePayload);
+
+    const { error } = await supabase
       .from("profiles")
-      .update({
-        name: data.name,
-        bio: data.bio || null,
-        photo_url: data.photo_url || null,
-        interests: data.interests,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", user.id)
-      .select();
+      .update(updatePayload)
+      .eq("id", user.id);
 
-    console.log("Update result:", { data: updateData, error });
+    if (error) {
+      console.error("Database error:", error);
+      return { success: false, error: error.message };
+    }
 
-    if (error) return { success: false, error: error.message };
-
+    console.log("Update successful");
     revalidatePath("/profile");
     return { success: true };
   } catch (error) {
