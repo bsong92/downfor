@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { hasClerkCredentials } from "@/lib/current-user";
 
 const examples = [
   { emoji: "⛳", text: "9 holes Saturday — anyone down?" },
@@ -8,12 +9,14 @@ const examples = [
 ];
 
 export default function LandingPage() {
+  const primaryHref = hasClerkCredentials() ? "/sign-in" : "/feed";
+
   return (
     <main className="min-h-screen bg-white flex flex-col">
       <header className="px-6 py-5 flex items-center justify-between max-w-3xl mx-auto w-full">
         <span className="text-lg font-bold text-indigo-600 tracking-tight">downfor</span>
         <Link
-          href="/feed"
+          href={primaryHref}
           className="text-sm font-medium text-gray-600 hover:text-gray-900"
         >
           Sign in
@@ -32,10 +35,10 @@ export default function LandingPage() {
           </p>
 
           <Link
-            href="/feed"
+            href={primaryHref}
             className="inline-flex items-center gap-2 bg-indigo-600 text-white px-6 py-3 rounded-xl font-semibold text-base hover:bg-indigo-700 transition-colors"
           >
-            See what&apos;s happening →
+            {hasClerkCredentials() ? "Sign in with Google →" : "See what&apos;s happening →"}
           </Link>
         </div>
 

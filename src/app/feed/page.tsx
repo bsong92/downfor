@@ -1,7 +1,7 @@
 import { Navbar } from "@/components/Navbar";
 import { FeedClient } from "./FeedClient";
 import { createServiceClient } from "@/lib/supabase-server";
-import type { ActivityWithPoster } from "@/lib/mock-data";
+import type { ActivityWithPoster } from "@/types/app";
 
 export default async function FeedPage() {
   const supabase = createServiceClient();

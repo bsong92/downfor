@@ -1,13 +1,10 @@
 import { Navbar } from "@/components/Navbar";
 import { CategoryBadge } from "@/components/CategoryBadge";
 import { createServiceClient } from "@/lib/supabase-server";
-import { MOCK_USER } from "@/lib/mock-user";
+import { getRequiredProfile } from "@/lib/current-user";
 import { createJoinRequest, updateRequestStatus } from "@/app/actions";
-import type { ActivityWithPoster } from "@/lib/mock-data";
-import type { JoinRequest, Profile } from "@/types/database";
+import type { ActivityWithPoster, JoinRequestWithRequester } from "@/types/app";
 import Link from "next/link";
-
-type JoinRequestWithRequester = JoinRequest & { requester: Profile };
 
 function formatDateTime(dateStr: string) {
   return new Date(dateStr).toLocaleDateString("en-US", {
@@ -26,6 +23,7 @@ export default async function ActivityDetailPage({
 }) {
   const { id } = await params;
   const supabase = createServiceClient();
+  const currentUser = await getRequiredProfile();
 
   const { data: activityData } = await supabase
     .from("activities")
@@ -56,8 +54,8 @@ export default async function ActivityDetailPage({
     .order("created_at", { ascending: true });
 
   const requests = (requestsData ?? []) as JoinRequestWithRequester[];
-  const isMyActivity = activity.poster_id === MOCK_USER.id;
-  const myRequest = requests.find((r) => r.requester_id === MOCK_USER.id);
+  const isMyActivity = activity.poster_id === currentUser.id;
+  const myRequest = requests.find((r) => r.requester_id === currentUser.id);
   const pendingRequests = requests.filter((r) => r.status === "pending");
   const resolvedRequests = requests.filter((r) => r.status !== "pending");
 

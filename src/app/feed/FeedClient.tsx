@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { ActivityCard } from "@/components/ActivityCard";
 import { getCategoryConfig, ALL_CATEGORIES } from "@/components/CategoryBadge";
-import type { ActivityWithPoster } from "@/lib/mock-data";
+import type { ActivityWithPoster } from "@/types/app";
 
 export function FeedClient({ activities }: { activities: ActivityWithPoster[] }) {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);

@@ -1,7 +1,7 @@
 "use server";
 
 import { createServiceClient } from "@/lib/supabase-server";
-import { MOCK_USER } from "@/lib/mock-user";
+import { getRequiredProfile } from "@/lib/current-user";
 import { revalidatePath } from "next/cache";
 
 export async function createActivity(data: {
@@ -14,16 +14,17 @@ export async function createActivity(data: {
   spots: string;
 }) {
   const supabase = createServiceClient();
+  const user = await getRequiredProfile();
   const activityDate = new Date(`${data.date}T${data.time}`).toISOString();
 
   const { error } = await supabase.from("activities").insert({
-    poster_id: MOCK_USER.id,
+    poster_id: user.id,
     category: data.category,
     title: data.title,
     description: data.description || null,
     activity_date: activityDate,
     location: data.location,
-    spots_available: parseInt(data.spots),
+    spots_available: parseInt(data.spots, 10),
   });
 
   if (error) return { success: false, error: error.message };
@@ -36,9 +37,10 @@ export async function createActivity(data: {
 // Used as a form action (must return void)
 export async function createJoinRequest(activityId: string): Promise<void> {
   const supabase = createServiceClient();
+  const user = await getRequiredProfile();
   await supabase.from("join_requests").insert({
     activity_id: activityId,
-    requester_id: MOCK_USER.id,
+    requester_id: user.id,
   });
   revalidatePath(`/activity/${activityId}`);
 }

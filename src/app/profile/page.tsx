@@ -1,14 +1,20 @@
-"use client";
-
 import { Navbar } from "@/components/Navbar";
 import { ActivityCard } from "@/components/ActivityCard";
 import { CategoryBadge } from "@/components/CategoryBadge";
-import { useUser } from "@/context/UserContext";
-import { MOCK_ACTIVITIES } from "@/lib/mock-data";
+import { getRequiredProfile } from "@/lib/current-user";
+import { createServiceClient } from "@/lib/supabase-server";
+import type { ActivityWithPoster } from "@/types/app";
 
-export default function ProfilePage() {
-  const user = useUser();
-  const myActivities = MOCK_ACTIVITIES.filter((a) => a.poster_id === user.id);
+export default async function ProfilePage() {
+  const user = await getRequiredProfile();
+  const supabase = createServiceClient();
+  const { data } = await supabase
+    .from("activities")
+    .select("*, poster:profiles!poster_id(*)")
+    .eq("poster_id", user.id)
+    .order("created_at", { ascending: false });
+
+  const myActivities = (data ?? []) as ActivityWithPoster[];
 
   return (
     <div className="min-h-screen bg-gray-50">

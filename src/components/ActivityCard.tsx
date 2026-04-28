@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { CategoryBadge } from "./CategoryBadge";
-import type { ActivityWithPoster } from "@/lib/mock-data";
+import type { ActivityWithPoster } from "@/types/app";
 
 function formatDate(dateStr: string) {
   const d = new Date(dateStr);
