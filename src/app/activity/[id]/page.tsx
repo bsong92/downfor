@@ -5,6 +5,7 @@ import { getRequiredProfile } from "@/lib/current-user";
 import { createJoinRequest, updateRequestStatus } from "@/app/actions";
 import type { ActivityWithPoster, JoinRequestWithRequester } from "@/types/app";
 import Link from "next/link";
+import { ActivityEditClient } from "@/app/activity/ActivityEditClient";
 
 function formatDateTime(dateStr: string) {
   return new Date(dateStr).toLocaleDateString("en-US", {
@@ -100,13 +101,16 @@ export default async function ActivityDetailPage({
             </div>
           </div>
 
-          <div className="mt-4 pt-4 border-t border-gray-50 flex items-center gap-2">
-            <div className="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center text-xs font-semibold text-indigo-600">
-              {activity.poster.name.charAt(0)}
+          <div className="mt-4 pt-4 border-t border-gray-50 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center text-xs font-semibold text-indigo-600">
+                {activity.poster.name.charAt(0)}
+              </div>
+              <span className="text-sm text-gray-500">
+                Posted by {activity.poster.name}
+              </span>
             </div>
-            <span className="text-sm text-gray-500">
-              Posted by {activity.poster.name}
-            </span>
+            {isMyActivity && <ActivityEditClient activity={activity} />}
           </div>
         </div>
 

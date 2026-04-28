@@ -74,6 +74,61 @@ export async function updateRequestStatus(
   revalidatePath(`/activity/${activityId}`);
 }
 
+export async function updateActivity(activityId: string, data: {
+  category: string;
+  title: string;
+  description: string;
+  date: string;
+  time: string;
+  location: string;
+  spots: string;
+}) {
+  try {
+    const supabase = createServiceClient();
+    const user = await getRequiredProfile();
+
+    // Verify user is the poster
+    const { data: activity } = await supabase
+      .from("activities")
+      .select("poster_id")
+      .eq("id", activityId)
+      .single();
+
+    if (!activity || activity.poster_id !== user.id) {
+      return { success: false, error: "Not authorized to edit this activity" };
+    }
+
+    const activityDate = new Date(`${data.date}T${data.time}`);
+    if (Number.isNaN(activityDate.getTime())) {
+      return { success: false, error: "Please enter a valid date and time." };
+    }
+
+    const { error } = await supabase
+      .from("activities")
+      .update({
+        category: data.category,
+        title: data.title,
+        description: data.description || null,
+        activity_date: activityDate.toISOString(),
+        location: data.location,
+        spots_available: parseInt(data.spots, 10),
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", activityId);
+
+    if (error) return { success: false, error: error.message };
+
+    revalidatePath(`/activity/${activityId}`);
+    revalidatePath("/feed");
+    revalidatePath("/profile");
+    return { success: true };
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Unable to update activity.";
+    return { success: false, error: message };
+  }
+}
+
 export async function uploadProfilePhoto(file: File) {
   try {
     const user = await getRequiredProfile();
