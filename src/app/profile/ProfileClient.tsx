@@ -37,13 +37,18 @@ export function ProfileClient({ initialUser }: { initialUser: Profile }) {
     }
   }, []);
 
+  // Log form state whenever it changes
+  useEffect(() => {
+    console.log("Form state updated:", form);
+  }, [form]);
+
   // Save form to localStorage whenever it changes (only while editing)
   useEffect(() => {
     if (!isEditing) return;
     try {
       const serialized = JSON.stringify(form);
       localStorage.setItem(STORAGE_KEY, serialized);
-      console.log("Saved form to localStorage");
+      console.log("Saved form to localStorage:", form);
     } catch (e) {
       console.error("Failed to save to localStorage:", e);
     }
