@@ -106,35 +106,43 @@ export async function updateProfile(data: {
     const supabase = createServiceClient();
     const user = await getRequiredProfile();
 
-    console.log("updateProfile called with:", { name: data.name, bio: data.bio, interests: data.interests });
+    console.log("updateProfile - incoming data:", data);
 
-    const updatePayload = {
-      name: data.name,
-      bio: data.bio.trim() || null,
-      photo_url: data.photo_url ? data.photo_url.trim() : null,
-      interests: data.interests && data.interests.length > 0 ? data.interests : [],
-      updated_at: new Date().toISOString(),
-    };
-
-    console.log("Update payload:", updatePayload);
-
-    const { error } = await supabase
+    // Split updates: interests needs special handling in Postgres
+    const { error: error1 } = await supabase
       .from("profiles")
-      .update(updatePayload)
+      .update({
+        name: data.name || "",
+        bio: data.bio ? data.bio.trim() : null,
+        photo_url: data.photo_url ? data.photo_url.trim() : null,
+        updated_at: new Date().toISOString(),
+      })
       .eq("id", user.id);
 
-    if (error) {
-      console.error("Database error:", error);
-      return { success: false, error: error.message };
+    if (error1) {
+      console.error("Error updating profile fields:", error1);
+      return { success: false, error: error1.message };
     }
 
-    console.log("Update successful");
+    const { error: error2 } = await supabase
+      .from("profiles")
+      .update({
+        interests: data.interests || [],
+      })
+      .eq("id", user.id);
+
+    if (error2) {
+      console.error("Error updating interests:", error2);
+      return { success: false, error: error2.message };
+    }
+
+    console.log("Profile updated successfully");
     revalidatePath("/profile");
     return { success: true };
   } catch (error) {
     const message =
-      error instanceof Error ? error.message : "Something went wrong while updating profile.";
-    console.error("updateProfile error:", message);
+      error instanceof Error ? error.message : "Profile update failed.";
+    console.error("updateProfile exception:", message);
     return { success: false, error: message };
   }
 }
