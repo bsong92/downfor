@@ -9,7 +9,10 @@ function hasClerkCredentials() {
   );
 }
 
-export default function middleware(request: NextRequest, event: Parameters<typeof clerkHandler>[1]) {
+export default function proxy(
+  request: NextRequest,
+  event: Parameters<typeof clerkHandler>[1]
+) {
   if (!hasClerkCredentials()) {
     return NextResponse.next();
   }
@@ -19,7 +22,7 @@ export default function middleware(request: NextRequest, event: Parameters<typeo
 
 export const config = {
   matcher: [
-    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
+    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
     "/(api|trpc)(.*)",
   ],
 };

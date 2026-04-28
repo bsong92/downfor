@@ -1,6 +1,6 @@
 "use client";
 
-import { SignInButton, UserButton } from "@clerk/nextjs";
+import { Show, SignInButton, UserButton } from "@clerk/nextjs";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useUser } from "@/context/UserContext";
@@ -14,7 +14,6 @@ export function Navbar() {
   const pathname = usePathname();
   const user = useUser();
   const hasClerk = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
-  const isSignedIn = Boolean(user);
 
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-gray-100">
@@ -39,8 +38,8 @@ export function Navbar() {
           ))}
 
           {hasClerk ? (
-            isSignedIn ? (
-              <>
+            <>
+              <Show when="signed-in">
                 <Link
                   href="/profile"
                   className="ml-2 px-3 py-1.5 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors"
@@ -50,14 +49,15 @@ export function Navbar() {
                 <div className="ml-1">
                   <UserButton />
                 </div>
-              </>
-            ) : (
-              <SignInButton mode="redirect">
-                <button className="ml-2 px-3 py-1.5 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors">
-                  Sign in
-                </button>
-              </SignInButton>
-            )
+              </Show>
+              <Show when="signed-out">
+                <SignInButton mode="redirect">
+                  <button className="ml-2 px-3 py-1.5 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors">
+                    Sign in
+                  </button>
+                </SignInButton>
+              </Show>
+            </>
           ) : user ? (
             <Link href="/profile" className="ml-2 flex items-center gap-2">
               <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center overflow-hidden">
