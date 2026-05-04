@@ -124,13 +124,13 @@ export function ProfileClient({ initialUser }: { initialUser: Profile }) {
   }
 
   return (
-    <div className="bg-white rounded-xl border border-gray-100 p-5 mb-6">
+    <div className="mb-6">
       {!isEditing ? (
         /* View mode */
-        <>
-          <div className="flex items-start justify-between mb-4">
-            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-full bg-indigo-100 flex items-center justify-center text-2xl font-bold text-indigo-600 overflow-hidden shrink-0">
+        <div className="bg-white rounded-xl border border-gray-100 p-8">
+          <div className="flex items-start justify-between mb-6">
+            <div className="flex gap-6">
+              <div className="w-24 h-24 rounded-full bg-indigo-100 flex items-center justify-center text-4xl font-bold text-indigo-600 overflow-hidden flex-shrink-0">
                 {form.photo_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={form.photo_url} alt={form.name} className="w-full h-full object-cover" />
@@ -138,44 +138,46 @@ export function ProfileClient({ initialUser }: { initialUser: Profile }) {
                   form.name.charAt(0)
                 )}
               </div>
-              <div className="flex-1">
-                <h1 className="text-lg font-bold text-gray-900">{form.name}</h1>
-                <p className="text-sm text-gray-500">{initialUser.email}</p>
-                {form.bio && <p className="text-sm text-gray-600 mt-2">{form.bio}</p>}
+              <div className="flex-1 pt-2">
+                <h1 className="text-3xl font-bold text-gray-900">{form.name}</h1>
+                <p className="text-gray-500 mt-1">{initialUser.email}</p>
+                {form.bio && <p className="text-gray-700 mt-3 leading-relaxed">{form.bio}</p>}
               </div>
             </div>
             <button
               onClick={() => setIsEditing(true)}
-              className="px-3 py-1.5 text-sm font-medium text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+              className="px-4 py-2 text-sm font-medium text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
             >
               Edit
             </button>
           </div>
 
           {form.interests.length > 0 && (
-            <div className="mt-4 flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2">
               {form.interests.map((interest) => {
                 const isPredefined = CATEGORIES.includes(interest as any);
                 if (isPredefined) {
                   const c = getCategoryConfig(interest);
                   return (
-                    <div key={interest} className="px-2.5 py-1 rounded-full bg-indigo-50 text-sm text-indigo-700">
+                    <div
+                      key={interest}
+                      className="px-3 py-1.5 rounded-full bg-indigo-50 text-sm font-medium text-indigo-700"
+                    >
                       {c.emoji} {c.label}
                     </div>
                   );
                 }
                 return (
-                  <div key={interest} className="px-2.5 py-1 rounded-full bg-blue-100 text-sm text-blue-700">
+                  <div key={interest} className="px-3 py-1.5 rounded-full bg-blue-100 text-sm font-medium text-blue-700">
                     {capitalize(interest)}
                   </div>
                 );
               })}
             </div>
           )}
-        </>
+        </div>
       ) : (
-        /* Edit mode */
-        <>
+        <div className="bg-white rounded-xl border border-gray-100 p-5">
           {error && (
             <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
               {error}
@@ -345,7 +347,7 @@ export function ProfileClient({ initialUser }: { initialUser: Profile }) {
               </button>
             </div>
           </div>
-        </>
+        </div>
       )}
     </div>
   );

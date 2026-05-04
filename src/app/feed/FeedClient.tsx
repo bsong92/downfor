@@ -4,9 +4,10 @@ import { useState } from "react";
 import Link from "next/link";
 import { ActivityCard } from "@/components/ActivityCard";
 import { getCategoryConfig, ALL_CATEGORIES } from "@/components/CategoryBadge";
-import type { ActivityWithPoster } from "@/types/app";
+import { FAB } from "@/components/FAB";
+import type { ActivityWithAttendees } from "@/types/app";
 
-export function FeedClient({ activities }: { activities: ActivityWithPoster[] }) {
+export function FeedClient({ activities }: { activities: ActivityWithAttendees[] }) {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
   const filtered = activeCategory
@@ -81,6 +82,7 @@ export function FeedClient({ activities }: { activities: ActivityWithPoster[] })
           ))}
         </div>
       )}
+      <FAB />
     </div>
   );
 }
