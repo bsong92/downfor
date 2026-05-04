@@ -8,6 +8,13 @@ import { updateProfile, uploadProfilePhoto } from "@/app/actions";
 
 const STORAGE_KEY = "profile-draft";
 
+function capitalize(str: string): string {
+  return str
+    .split(" ")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(" ");
+}
+
 export function ProfileClient({ initialUser }: { initialUser: Profile }) {
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -159,7 +166,7 @@ export function ProfileClient({ initialUser }: { initialUser: Profile }) {
                 }
                 return (
                   <div key={interest} className="px-2.5 py-1 rounded-full bg-blue-100 text-sm text-blue-700">
-                    {interest}
+                    {capitalize(interest)}
                   </div>
                 );
               })}
@@ -183,7 +190,7 @@ export function ProfileClient({ initialUser }: { initialUser: Profile }) {
                 type="text"
                 value={form.name}
                 onChange={(e) => set("name", e.target.value)}
-                className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent placeholder:text-gray-400"
+                className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent placeholder:text-gray-400"
               />
             </div>
 
