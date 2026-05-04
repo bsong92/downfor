@@ -67,9 +67,13 @@ export function ProfileClient({ initialUser }: { initialUser: Profile }) {
   }
 
   function addCustomInterest(interest: string) {
-    const trimmed = interest.trim().toLowerCase();
-    if (trimmed && !form.interests.includes(trimmed)) {
-      set("interests", [...form.interests, trimmed]);
+    const trimmed = interest.trim();
+    const titleCased = trimmed
+      .split(" ")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(" ");
+    if (titleCased && !form.interests.includes(titleCased)) {
+      set("interests", [...form.interests, titleCased]);
     }
     setCustomInterestInput("");
   }
@@ -144,10 +148,18 @@ export function ProfileClient({ initialUser }: { initialUser: Profile }) {
           {form.interests.length > 0 && (
             <div className="mt-4 flex flex-wrap gap-2">
               {form.interests.map((interest) => {
-                const c = getCategoryConfig(interest);
+                const isPredefined = CATEGORIES.includes(interest as any);
+                if (isPredefined) {
+                  const c = getCategoryConfig(interest);
+                  return (
+                    <div key={interest} className="px-2.5 py-1 rounded-full bg-indigo-50 text-sm text-indigo-700">
+                      {c.emoji} {c.label}
+                    </div>
+                  );
+                }
                 return (
-                  <div key={interest} className="px-2.5 py-1 rounded-full bg-indigo-50 text-sm text-indigo-700">
-                    {c.emoji} {c.label}
+                  <div key={interest} className="px-2.5 py-1 rounded-full bg-blue-100 text-sm text-blue-700">
+                    {interest}
                   </div>
                 );
               })}
@@ -171,7 +183,7 @@ export function ProfileClient({ initialUser }: { initialUser: Profile }) {
                 type="text"
                 value={form.name}
                 onChange={(e) => set("name", e.target.value)}
-                className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent"
+                className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent placeholder:text-gray-400"
               />
             </div>
 
