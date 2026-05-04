@@ -11,6 +11,7 @@ export default function CreatePage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showDescription, setShowDescription] = useState(false);
   const [form, setForm] = useState({
     category: "workout",
     title: "",
@@ -45,23 +46,30 @@ export default function CreatePage() {
     }
   }
 
+  const spotsValue = parseInt(form.spots, 10) || 0;
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white flex flex-col">
       <Navbar />
 
-      <div className="max-w-xl mx-auto px-4 py-8">
-        <h1 className="text-xl font-bold text-gray-900 mb-6">Post an activity</h1>
+      <div className="flex-1 max-w-2xl w-full mx-auto px-4 py-6">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-gray-900">What are you doing?</h1>
+          <p className="text-gray-500 mt-1">Post an activity and find people to join</p>
+        </div>
 
-        {error ? (
-          <div className="mb-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        {/* Error */}
+        {error && (
+          <div className="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
             {error}
           </div>
-        ) : null}
+        )}
 
-        <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Category */}
+        <form onSubmit={handleSubmit} className="space-y-6 pb-40">
+          {/* Category Section */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
+            <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">Pick a category</p>
             <div className="flex gap-2 flex-wrap">
               {CATEGORIES.map((cat) => {
                 const c = getCategoryConfig(cat);
@@ -71,125 +79,132 @@ export default function CreatePage() {
                     key={cat}
                     type="button"
                     onClick={() => set("category", cat)}
-                    className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
+                    className={`px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
                       selected
-                        ? "bg-indigo-600 text-white border-indigo-600"
-                        : "bg-white text-gray-600 border-gray-200 hover:border-indigo-300"
+                        ? "bg-indigo-600 text-white shadow-sm"
+                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                     }`}
                   >
-                    {c.emoji} {c.label}
+                    <span className="text-lg mr-1">{c.emoji}</span>
+                    {c.label}
                   </button>
                 );
               })}
             </div>
           </div>
 
-          {/* Title */}
+          {/* Title Section */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Title <span className="text-red-400">*</span>
-            </label>
             <input
               type="text"
               required
-              placeholder="e.g. 9 holes Saturday morning"
+              placeholder="Pickup basketball at 6pm"
               value={form.title}
               onChange={(e) => set("title", e.target.value)}
-              className="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent"
+              maxLength={60}
+              className="w-full text-3xl font-bold text-gray-900 bg-transparent placeholder:text-gray-400 focus:outline-none"
             />
+            <div className="text-xs text-gray-400 mt-2">{form.title.length}/60</div>
           </div>
 
-          {/* Description */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Description{" "}
-              <span className="text-gray-400 font-normal">optional</span>
-            </label>
-            <textarea
-              rows={3}
-              placeholder="Any details people should know..."
-              value={form.description}
-              onChange={(e) => set("description", e.target.value)}
-              className="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent resize-none"
-            />
-          </div>
-
-          {/* Date + Time */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Date <span className="text-red-400">*</span>
-              </label>
+          {/* Date & Time Section */}
+          <div className="bg-gray-50 rounded-2xl p-4 space-y-4">
+            <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">When</p>
+            <div className="grid grid-cols-2 gap-3">
               <input
                 type="date"
                 required
                 value={form.date}
                 onChange={(e) => set("date", e.target.value)}
-                className="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent"
+                className="px-4 py-3 rounded-lg bg-white border border-gray-200 text-sm font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-300"
               />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Time <span className="text-red-400">*</span>
-              </label>
               <input
                 type="time"
                 required
                 value={form.time}
                 onChange={(e) => set("time", e.target.value)}
-                className="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent"
+                className="px-4 py-3 rounded-lg bg-white border border-gray-200 text-sm font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-300"
               />
             </div>
           </div>
 
-          {/* Location */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Location <span className="text-red-400">*</span>
-            </label>
+          {/* Location Section */}
+          <div className="bg-gray-50 rounded-2xl p-4">
+            <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">Where</p>
             <input
               type="text"
               required
-              placeholder="e.g. Jackson Park Golf Course"
+              placeholder="Jackson Park, gym, coffee shop..."
               value={form.location}
               onChange={(e) => set("location", e.target.value)}
-              className="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent"
+              className="w-full px-4 py-3 rounded-lg bg-white border border-gray-200 text-sm font-medium text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-300"
             />
           </div>
 
-          {/* Spots */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Spots available <span className="text-red-400">*</span>
-            </label>
-            <input
-              type="number"
-              required
-              min={1}
-              max={20}
-              value={form.spots}
-              onChange={(e) => set("spots", e.target.value)}
-              className="w-24 px-3 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent"
-            />
+          {/* Spots Section */}
+          <div className="bg-gray-50 rounded-2xl p-4">
+            <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">How many spots?</p>
+            <div className="flex items-center justify-between bg-white rounded-lg border border-gray-200 p-2">
+              <button
+                type="button"
+                onClick={() => set("spots", Math.max(1, spotsValue - 1).toString())}
+                className="w-12 h-12 rounded-lg hover:bg-gray-100 active:bg-gray-200 transition-colors text-lg font-bold text-gray-600"
+              >
+                −
+              </button>
+              <span className="text-2xl font-bold text-gray-900">{spotsValue}</span>
+              <button
+                type="button"
+                onClick={() => set("spots", Math.min(20, spotsValue + 1).toString())}
+                className="w-12 h-12 rounded-lg hover:bg-gray-100 active:bg-gray-200 transition-colors text-lg font-bold text-gray-600"
+              >
+                +
+              </button>
+            </div>
           </div>
 
-          <div className="flex gap-3 pt-2">
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex-1 bg-indigo-600 text-white py-2.5 rounded-lg font-semibold text-sm hover:bg-indigo-700 transition-colors disabled:opacity-50"
-            >
-              {loading ? "Posting..." : "Post activity"}
-            </button>
+          {/* Description - Collapsible */}
+          {!showDescription ? (
             <button
               type="button"
-              onClick={() => router.back()}
-              className="px-4 py-2.5 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
+              onClick={() => setShowDescription(true)}
+              className="w-full py-3 text-gray-500 hover:text-gray-700 transition-colors text-sm font-medium"
             >
-              Cancel
+              + Add description (optional)
             </button>
-          </div>
+          ) : (
+            <div className="bg-gray-50 rounded-2xl p-4">
+              <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">Details</p>
+              <textarea
+                rows={3}
+                placeholder="Any details people should know?"
+                value={form.description}
+                onChange={(e) => set("description", e.target.value)}
+                className="w-full px-4 py-3 rounded-lg bg-white border border-gray-200 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-300 resize-none"
+              />
+              <button
+                type="button"
+                onClick={() => setShowDescription(false)}
+                className="text-xs text-gray-400 hover:text-gray-600 mt-2"
+              >
+                Hide
+              </button>
+            </div>
+          )}
         </form>
+      </div>
+
+      {/* Sticky Footer Button */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-3">
+        <div className="max-w-2xl mx-auto">
+          <button
+            onClick={(e) => handleSubmit(e as any)}
+            disabled={loading || !form.title || !form.date || !form.time || !form.location}
+            className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all duration-200"
+          >
+            {loading ? "Posting..." : "Post activity"}
+          </button>
+        </div>
       </div>
     </div>
   );
