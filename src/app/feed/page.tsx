@@ -12,7 +12,7 @@ export default async function FeedPage() {
       "*, poster:profiles!poster_id(*), join_requests!activity_id(id, status, requester:profiles!requester_id(id, name, photo_url))"
     )
     .eq("status", "active")
-    .order("created_at", { ascending: false });
+    .order("activity_date", { ascending: true });
 
   const activities = (data ?? []) as ActivityWithAttendees[];
 

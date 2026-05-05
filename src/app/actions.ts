@@ -17,6 +17,7 @@ export async function createActivity(data: {
   time: string;
   location: string;
   spots: string;
+  image_url?: string;
 }) {
   try {
     const supabase = createServiceClient();
@@ -46,6 +47,7 @@ export async function createActivity(data: {
       activity_date: activityDate.toISOString(),
       location: data.location,
       spots_available: parseInt(data.spots, 10),
+      image_url: data.image_url || null,
     });
 
     if (error) return { success: false, error: error.message };
@@ -197,6 +199,28 @@ export async function uploadProfilePhoto(file: File) {
 
     const fileBuffer = await fileToBuffer(file);
     const filename = `${user.id}-${Date.now()}-${file.name}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("profile-photos")
+      .upload(filename, fileBuffer, { contentType: file.type });
+
+    if (uploadError) return { success: false, error: uploadError.message };
+
+    const { data } = supabase.storage.from("profile-photos").getPublicUrl(filename);
+    return { success: true, photoUrl: data.publicUrl };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unable to upload photo.";
+    return { success: false, error: message };
+  }
+}
+
+export async function uploadActivityPhoto(file: File) {
+  try {
+    const user = await getRequiredProfile();
+    const supabase = createServiceClient();
+
+    const fileBuffer = await fileToBuffer(file);
+    const filename = `${user.id}-activity-${Date.now()}-${file.name}`;
 
     const { error: uploadError } = await supabase.storage
       .from("profile-photos")

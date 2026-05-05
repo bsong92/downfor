@@ -21,6 +21,7 @@ export type Activity = {
   location: string;
   spots_available: number;
   status: "active" | "cancelled" | "full";
+  image_url: string | null;
   created_at: string;
   updated_at: string;
 };

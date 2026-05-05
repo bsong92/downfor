@@ -1,17 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Navbar } from "@/components/Navbar";
 import { CATEGORIES } from "@/types/database";
-import { getCategoryConfig } from "@/components/CategoryBadge";
-import { createActivity } from "@/app/actions";
+import { getCategoryConfig, getCategoryGradient } from "@/components/CategoryBadge";
+import { createActivity, uploadActivityPhoto } from "@/app/actions";
 
 export default function CreatePage() {
   const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
+  const [uploadingCover, setUploadingCover] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showDescription, setShowDescription] = useState(false);
+  const [coverPhotoUrl, setCoverPhotoUrl] = useState("");
   const [form, setForm] = useState({
     category: "workout",
     title: "",
@@ -26,13 +29,33 @@ export default function CreatePage() {
     setForm((prev) => ({ ...prev, [field]: value }));
   }
 
+  async function handleCoverUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingCover(true);
+    setError(null);
+
+    const result = await uploadActivityPhoto(file);
+    if (result.success && result.photoUrl) {
+      setCoverPhotoUrl(result.photoUrl);
+    } else {
+      setError(result.error ?? "Unable to upload photo.");
+    }
+    setUploadingCover(false);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
     try {
-      const result = await createActivity(form);
+      const result = await createActivity({
+        ...form,
+        image_url: coverPhotoUrl || undefined,
+      });
       if (result.success) {
         router.push("/feed");
         return;
@@ -47,6 +70,8 @@ export default function CreatePage() {
   }
 
   const spotsValue = parseInt(form.spots, 10) || 0;
+  const gradientClass = getCategoryGradient(form.category);
+  const defaultGradient = "bg-gradient-to-br from-indigo-500 to-purple-600";
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
@@ -67,9 +92,47 @@ export default function CreatePage() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6 pb-40">
+          {/* Cover Photo Section */}
+          <div
+            onClick={() => fileInputRef.current?.click()}
+            className={`relative mx-0 h-48 rounded-2xl overflow-hidden cursor-pointer transition-transform hover:scale-105 ${
+              coverPhotoUrl ? "" : gradientClass || defaultGradient
+            }`}
+          >
+            {coverPhotoUrl && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={coverPhotoUrl}
+                alt="Cover"
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+            )}
+            <div className="absolute inset-0 bg-black/20 flex flex-col items-center justify-center text-white">
+              {uploadingCover ? (
+                <span className="text-sm font-medium">Uploading...</span>
+              ) : (
+                <>
+                  <span className="text-3xl mb-1">📷</span>
+                  <span className="text-sm font-medium opacity-90">
+                    {coverPhotoUrl ? "Change photo" : "Add cover photo (optional)"}
+                  </span>
+                </>
+              )}
+            </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleCoverUpload}
+              className="hidden"
+            />
+          </div>
+
           {/* Category Section */}
           <div>
-            <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">Pick a category</p>
+            <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">
+              Pick a category
+            </p>
             <div className="flex gap-2 flex-wrap">
               {CATEGORIES.map((cat) => {
                 const c = getCategoryConfig(cat);
@@ -130,7 +193,9 @@ export default function CreatePage() {
 
           {/* Location Section */}
           <div className="bg-gray-50 rounded-2xl p-4">
-            <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">Where</p>
+            <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">
+              Where
+            </p>
             <input
               type="text"
               required
@@ -143,7 +208,9 @@ export default function CreatePage() {
 
           {/* Spots Section */}
           <div className="bg-gray-50 rounded-2xl p-4">
-            <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">How many spots?</p>
+            <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">
+              How many spots?
+            </p>
             <div className="flex items-center justify-between bg-white rounded-lg border border-gray-200 p-2">
               <button
                 type="button"
@@ -174,7 +241,9 @@ export default function CreatePage() {
             </button>
           ) : (
             <div className="bg-gray-50 rounded-2xl p-4">
-              <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">Details</p>
+              <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">
+                Details
+              </p>
               <textarea
                 rows={3}
                 placeholder="Any details people should know?"
@@ -199,7 +268,7 @@ export default function CreatePage() {
         <div className="max-w-2xl mx-auto">
           <button
             onClick={(e) => handleSubmit(e as any)}
-            disabled={loading || !form.title || !form.date || !form.time || !form.location}
+            disabled={loading || uploadingCover || !form.title || !form.date || !form.time || !form.location}
             className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all duration-200"
           >
             {loading ? "Posting..." : "Post activity"}

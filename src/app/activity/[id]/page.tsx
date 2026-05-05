@@ -1,5 +1,5 @@
 import { Navbar } from "@/components/Navbar";
-import { CategoryBadge } from "@/components/CategoryBadge";
+import { CategoryBadge, getCategoryGradient, getCategoryConfig } from "@/components/CategoryBadge";
 import { createServiceClient } from "@/lib/supabase-server";
 import { getRequiredProfile } from "@/lib/current-user";
 import { createJoinRequest, updateRequestStatus } from "@/app/actions";
@@ -59,60 +59,147 @@ export default async function ActivityDetailPage({
   const myRequest = requests.find((r) => r.requester_id === currentUser.id);
   const pendingRequests = requests.filter((r) => r.status === "pending");
   const resolvedRequests = requests.filter((r) => r.status !== "pending");
+  const approvedRequests = requests.filter((r) => r.status === "approved");
+
+  const c = getCategoryConfig(activity.category);
+  const gradientClass = getCategoryGradient(activity.category);
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
 
-      <div className="max-w-xl mx-auto px-4 py-8">
+      {/* Hero section */}
+      <div className={`relative h-56 overflow-hidden ${gradientClass}`}>
+        {activity.image_url && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={activity.image_url}
+            alt={activity.title}
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+
+        {/* Back button */}
         <Link
           href="/feed"
-          className="text-sm text-gray-500 hover:text-gray-700 mb-6 flex items-center gap-1"
+          className="absolute top-4 left-4 bg-black/40 backdrop-blur-sm text-white text-sm px-3 py-1.5 rounded-full hover:bg-black/60 transition-colors"
         >
           ← Back
         </Link>
 
-        {/* Activity details */}
-        <div className="bg-white rounded-xl border border-gray-100 p-5 mb-6">
-          <div className="flex items-start justify-between mb-3">
-            <CategoryBadge category={activity.category} />
-            <span className="text-xs text-gray-400">
-              {activity.spots_available} spot
-              {activity.spots_available !== 1 ? "s" : ""} available
+        {/* Category pill */}
+        <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm text-xs font-semibold text-gray-900 px-2.5 py-1 rounded-full">
+          {c.emoji} {c.label}
+        </div>
+
+        {/* Title + location at bottom */}
+        <div className="absolute bottom-4 left-4 right-4">
+          <h1 className="text-2xl font-bold text-white mb-1 line-clamp-2">
+            {activity.title}
+          </h1>
+          <p className="text-white/80 text-sm flex items-center gap-1">
+            📍 {activity.location}
+          </p>
+        </div>
+      </div>
+
+      {/* Content area */}
+      <div className="max-w-xl mx-auto px-4 py-8">
+        {/* Host info */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-sm font-semibold text-indigo-600 overflow-hidden flex-shrink-0">
+              {activity.poster.photo_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={activity.poster.photo_url}
+                  alt={activity.poster.name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                activity.poster.name.charAt(0)
+              )}
+            </div>
+            <div>
+              <p className="text-xs text-gray-500">Hosted by</p>
+              <p className="text-sm font-semibold text-gray-900">
+                {activity.poster.name}
+              </p>
+            </div>
+          </div>
+          {isMyActivity && <ActivityEditClient activity={activity} />}
+        </div>
+
+        {/* Details */}
+        <div className="space-y-3 mb-6">
+          <div className="flex items-center gap-2 text-gray-700">
+            <span>📅</span>
+            <span className="text-sm">{formatDateTime(activity.activity_date)}</span>
+          </div>
+          <div className="flex items-center gap-2 text-gray-700">
+            <span>🎟️</span>
+            <span className="text-sm">
+              {activity.spots_available} spot{activity.spots_available !== 1 ? "s" : ""} available
             </span>
           </div>
-
-          <h1 className="text-xl font-bold text-gray-900 mb-2">{activity.title}</h1>
-
-          {activity.description && (
-            <p className="text-gray-600 text-sm mb-4 leading-relaxed">
-              {activity.description}
-            </p>
-          )}
-
-          <div className="space-y-2 text-sm text-gray-500">
-            <div className="flex items-center gap-2">
-              <span>🕐</span>
-              <span>{formatDateTime(activity.activity_date)}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span>📍</span>
-              <span>{activity.location}</span>
-            </div>
-          </div>
-
-          <div className="mt-4 pt-4 border-t border-gray-50 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center text-xs font-semibold text-indigo-600">
-                {activity.poster.name.charAt(0)}
-              </div>
-              <span className="text-sm text-gray-500">
-                Posted by {activity.poster.name}
-              </span>
-            </div>
-            {isMyActivity && <ActivityEditClient activity={activity} />}
-          </div>
         </div>
+
+        {/* Description */}
+        {activity.description && (
+          <p className="text-gray-600 text-sm leading-relaxed mb-6">
+            {activity.description}
+          </p>
+        )}
+
+        {/* Who's going section */}
+        {approvedRequests.length > 0 && (
+          <div className="mb-6">
+            <h2 className="font-semibold text-gray-900 mb-3">
+              Who's going?{" "}
+              <span className="text-gray-400 font-normal text-sm">
+                {approvedRequests.length}
+              </span>
+            </h2>
+            <div className="flex items-center gap-2 mb-2">
+              {approvedRequests.slice(0, 5).map((req) => (
+                <div
+                  key={req.requester.id}
+                  className="w-8 h-8 rounded-full bg-indigo-200 flex items-center justify-center text-xs font-semibold text-indigo-700 border border-white overflow-hidden"
+                >
+                  {req.requester.photo_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={req.requester.photo_url}
+                      alt={req.requester.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    req.requester.name.charAt(0)
+                  )}
+                </div>
+              ))}
+              {approvedRequests.length > 5 && (
+                <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-semibold text-gray-600">
+                  +{approvedRequests.length - 5}
+                </div>
+              )}
+            </div>
+            {approvedRequests.length > 0 && (
+              <p className="text-sm text-gray-600">
+                {approvedRequests[0].requester.name}
+                {approvedRequests.length > 1 && (
+                  <>
+                    {" "}
+                    and <span className="font-semibold">{approvedRequests.length - 1} other</span>
+                    {approvedRequests.length > 2 ? "s" : ""} are going
+                  </>
+                )}{" "}
+                {approvedRequests.length === 1 && "is going"}
+              </p>
+            )}
+          </div>
+        )}
 
         {/* Request to join (non-poster) */}
         {!isMyActivity && (
@@ -123,14 +210,14 @@ export default async function ActivityDetailPage({
                 {myRequest.status === "pending"
                   ? `${activity.poster.name} will review it`
                   : myRequest.status === "approved"
-                  ? "you're in!"
-                  : "request was declined"}
+                    ? "you're in!"
+                    : "request was declined"}
               </div>
             ) : (
               <form action={createJoinRequest.bind(null, id)}>
                 <button
                   type="submit"
-                  className="w-full bg-indigo-600 text-white py-3 rounded-xl font-semibold hover:bg-indigo-700 transition-colors"
+                  className="w-full bg-indigo-600 text-white py-4 rounded-xl font-bold text-base hover:bg-indigo-700 transition-colors"
                 >
                   I&apos;m down — request to join
                 </button>
@@ -160,8 +247,17 @@ export default async function ActivityDetailPage({
                     key={req.id}
                     className="bg-white rounded-xl border border-gray-100 p-4 flex items-center gap-3"
                   >
-                    <div className="w-9 h-9 rounded-full bg-indigo-100 flex items-center justify-center text-sm font-semibold text-indigo-600 shrink-0">
-                      {req.requester.name.charAt(0)}
+                    <div className="w-9 h-9 rounded-full bg-indigo-100 flex items-center justify-center text-sm font-semibold text-indigo-600 shrink-0 overflow-hidden">
+                      {req.requester.photo_url ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={req.requester.photo_url}
+                          alt={req.requester.name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        req.requester.name.charAt(0)
+                      )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-sm text-gray-900">
@@ -201,8 +297,17 @@ export default async function ActivityDetailPage({
                     key={req.id}
                     className="bg-white rounded-xl border border-gray-100 p-4 flex items-center gap-3"
                   >
-                    <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-sm font-semibold text-gray-500 shrink-0">
-                      {req.requester.name.charAt(0)}
+                    <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-sm font-semibold text-gray-500 shrink-0 overflow-hidden">
+                      {req.requester.photo_url ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={req.requester.photo_url}
+                          alt={req.requester.name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        req.requester.name.charAt(0)
+                      )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-sm text-gray-700">
