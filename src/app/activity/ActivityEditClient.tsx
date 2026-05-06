@@ -107,7 +107,7 @@ export function ActivityEditClient({ activity }: { activity: ActivityWithPoster 
               type="text"
               value={form.title}
               onChange={(e) => set("title", e.target.value)}
-              className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent"
+              className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent"
             />
           </div>
 
@@ -121,7 +121,7 @@ export function ActivityEditClient({ activity }: { activity: ActivityWithPoster 
               value={form.description}
               onChange={(e) => set("description", e.target.value)}
               placeholder="Tell people what this activity is about..."
-              className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent resize-none"
+              className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent resize-none"
             />
           </div>
 
@@ -133,7 +133,7 @@ export function ActivityEditClient({ activity }: { activity: ActivityWithPoster 
                 type="date"
                 value={form.date}
                 onChange={(e) => set("date", e.target.value)}
-                className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent"
+                className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent"
               />
             </div>
             <div>
@@ -142,7 +142,7 @@ export function ActivityEditClient({ activity }: { activity: ActivityWithPoster 
                 type="time"
                 value={form.time}
                 onChange={(e) => set("time", e.target.value)}
-                className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent"
+                className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent"
               />
             </div>
           </div>
@@ -155,7 +155,7 @@ export function ActivityEditClient({ activity }: { activity: ActivityWithPoster 
               value={form.location}
               onChange={(e) => set("location", e.target.value)}
               placeholder="Where should people meet?"
-              className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent"
+              className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent"
             />
           </div>
 
@@ -167,7 +167,7 @@ export function ActivityEditClient({ activity }: { activity: ActivityWithPoster 
               min="1"
               value={form.spots}
               onChange={(e) => set("spots", e.target.value)}
-              className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent"
+              className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent"
             />
           </div>
 
