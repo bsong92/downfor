@@ -13,15 +13,10 @@ export async function GET(request: Request) {
   try {
     const supabase = createServiceClient();
 
-    const now = new Date();
-    const futureDate = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
-
     const { data: activities } = await supabase
       .from("activities")
       .select("id, location, activity_date, is_outdoor")
       .eq("is_outdoor", true)
-      .gte("activity_date", now.toISOString())
-      .lte("activity_date", futureDate.toISOString())
       .is("weather_data", null);
 
     let updated = 0;
