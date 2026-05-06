@@ -1,5 +1,6 @@
 import { Navbar } from "@/components/Navbar";
 import { CategoryBadge, getCategoryGradient, getCategoryConfig } from "@/components/CategoryBadge";
+import { WeatherDisplay } from "@/components/WeatherDisplay";
 import { createServiceClient } from "@/lib/supabase-server";
 import { getRequiredProfile } from "@/lib/current-user";
 import { createJoinRequest, updateRequestStatus } from "@/app/actions";
@@ -150,6 +151,11 @@ export default async function ActivityDetailPage({
           <p className="text-gray-600 text-sm leading-relaxed mb-6">
             {activity.description}
           </p>
+        )}
+
+        {/* Weather for outdoor activities */}
+        {activity.is_outdoor && activity.weather_data && (
+          <WeatherDisplay weather={activity.weather_data} variant="full" />
         )}
 
         {/* Who's going section */}

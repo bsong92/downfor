@@ -17,6 +17,7 @@ export async function createActivity(data: {
   time: string;
   location: string;
   spots: string;
+  is_outdoor: boolean;
   image_url?: string;
 }) {
   try {
@@ -39,7 +40,7 @@ export async function createActivity(data: {
       return { success: false, error: "Please enter a valid date and time." };
     }
 
-    const { error } = await supabase.from("activities").insert({
+    const { data: activity, error } = await supabase.from("activities").insert({
       poster_id: user.id,
       category: data.category,
       title: data.title,
@@ -47,10 +48,15 @@ export async function createActivity(data: {
       activity_date: activityDate.toISOString(),
       location: data.location,
       spots_available: parseInt(data.spots, 10),
+      is_outdoor: data.is_outdoor,
       image_url: data.image_url || null,
-    });
+    }).select().single();
 
     if (error) return { success: false, error: error.message };
+
+    if (activity && data.is_outdoor) {
+      await updateActivityWeather(activity.id, data.location, data.date, data.is_outdoor);
+    }
 
     revalidatePath("/feed");
     revalidatePath("/profile");
@@ -135,6 +141,7 @@ export async function updateActivity(activityId: string, data: {
   time: string;
   location: string;
   spots: string;
+  is_outdoor?: boolean;
 }) {
   try {
     const supabase = createServiceClient();
@@ -166,20 +173,30 @@ export async function updateActivity(activityId: string, data: {
       return { success: false, error: "Please enter a valid date and time." };
     }
 
+    const updatePayload: Record<string, any> = {
+      category: data.category,
+      title: data.title,
+      description: data.description || null,
+      activity_date: activityDate.toISOString(),
+      location: data.location,
+      spots_available: parseInt(data.spots, 10),
+      updated_at: new Date().toISOString(),
+    };
+
+    if (data.is_outdoor !== undefined) {
+      updatePayload.is_outdoor = data.is_outdoor;
+    }
+
     const { error } = await supabase
       .from("activities")
-      .update({
-        category: data.category,
-        title: data.title,
-        description: data.description || null,
-        activity_date: activityDate.toISOString(),
-        location: data.location,
-        spots_available: parseInt(data.spots, 10),
-        updated_at: new Date().toISOString(),
-      })
+      .update(updatePayload)
       .eq("id", activityId);
 
     if (error) return { success: false, error: error.message };
+
+    if (data.is_outdoor) {
+      await updateActivityWeather(activityId, data.location, data.date, data.is_outdoor);
+    }
 
     revalidatePath(`/activity/${activityId}`);
     revalidatePath("/feed");
@@ -290,6 +307,45 @@ export async function updateProfile(data: {
     const message =
       error instanceof Error ? error.message : "Profile update failed.";
     console.error("updateProfile exception:", message);
+    return { success: false, error: message };
+  }
+}
+
+export async function updateActivityWeather(
+  activityId: string,
+  location: string,
+  date: string,
+  isOutdoor: boolean
+) {
+  try {
+    if (!isOutdoor) {
+      return { success: true };
+    }
+
+    const { getWeatherForLocation } = await import("@/lib/weather");
+    const weatherData = await getWeatherForLocation(location, date);
+
+    if (!weatherData) {
+      return { success: true };
+    }
+
+    const supabase = createServiceClient();
+    const { error } = await supabase
+      .from("activities")
+      .update({
+        weather_data: weatherData,
+        weather_last_updated: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", activityId);
+
+    if (error) return { success: false, error: error.message };
+
+    revalidatePath(`/activity/${activityId}`);
+    revalidatePath("/feed");
+    return { success: true };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Failed to update weather.";
     return { success: false, error: message };
   }
 }

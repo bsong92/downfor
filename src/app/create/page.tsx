@@ -23,9 +23,10 @@ export default function CreatePage() {
     time: "",
     location: "",
     spots: "2",
+    is_outdoor: true,
   });
 
-  function set(field: string, value: string) {
+  function set(field: string, value: string | boolean) {
     setForm((prev) => ({ ...prev, [field]: value }));
   }
 
@@ -53,7 +54,14 @@ export default function CreatePage() {
 
     try {
       const result = await createActivity({
-        ...form,
+        category: form.category,
+        title: form.title,
+        description: form.description,
+        date: form.date,
+        time: form.time,
+        location: form.location,
+        spots: form.spots,
+        is_outdoor: form.is_outdoor,
         image_url: coverPhotoUrl || undefined,
       });
       if (result.success) {
@@ -154,6 +162,27 @@ export default function CreatePage() {
                 );
               })}
             </div>
+          </div>
+
+          {/* Outdoor Section */}
+          <div className="flex items-center justify-between bg-gray-50 rounded-2xl p-4">
+            <div>
+              <p className="text-sm font-semibold text-gray-900">Is this outdoor?</p>
+              <p className="text-xs text-gray-500 mt-1">Get weather forecasts for outdoor activities</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => set("is_outdoor", !form.is_outdoor)}
+              className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors ${
+                form.is_outdoor ? "bg-indigo-600" : "bg-gray-300"
+              }`}
+            >
+              <span
+                className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${
+                  form.is_outdoor ? "translate-x-7" : "translate-x-1"
+                }`}
+              />
+            </button>
           </div>
 
           {/* Title Section */}

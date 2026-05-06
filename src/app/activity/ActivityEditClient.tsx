@@ -23,9 +23,10 @@ export function ActivityEditClient({ activity }: { activity: ActivityWithPoster 
     time: timeStr,
     location: activity.location,
     spots: activity.spots_available.toString(),
+    is_outdoor: activity.is_outdoor ?? true,
   });
 
-  function set(field: string, value: string) {
+  function set(field: string, value: string | boolean) {
     setForm((prev) => ({ ...prev, [field]: value }));
   }
 
@@ -168,6 +169,27 @@ export function ActivityEditClient({ activity }: { activity: ActivityWithPoster 
               onChange={(e) => set("spots", e.target.value)}
               className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent"
             />
+          </div>
+
+          {/* Outdoor Toggle */}
+          <div className="flex items-center justify-between bg-gray-50 rounded-lg p-3">
+            <div>
+              <p className="text-sm font-medium text-gray-900">Is this outdoor?</p>
+              <p className="text-xs text-gray-500 mt-1">Get weather forecasts for outdoor activities</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => set("is_outdoor", !form.is_outdoor)}
+              className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors ${
+                form.is_outdoor ? "bg-indigo-600" : "bg-gray-300"
+              }`}
+            >
+              <span
+                className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${
+                  form.is_outdoor ? "translate-x-7" : "translate-x-1"
+                }`}
+              />
+            </button>
           </div>
 
           {/* Buttons */}

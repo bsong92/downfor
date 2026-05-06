@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getCategoryConfig, getCategoryGradient } from "./CategoryBadge";
+import { WeatherDisplay } from "./WeatherDisplay";
 import type { ActivityWithAttendees } from "@/types/app";
 
 function formatTime(dateStr: string) {
@@ -79,6 +80,13 @@ export function FeedItem({ activity }: { activity: ActivityWithAttendees }) {
               <span className="text-xs font-medium whitespace-nowrap">{poster.name}</span>
             </div>
           </div>
+
+          {/* Weather for outdoor activities */}
+          {activity.is_outdoor && activity.weather_data && (
+            <div className="mb-3">
+              <WeatherDisplay weather={activity.weather_data} variant="compact" />
+            </div>
+          )}
 
           {/* Row 2: Attendees and Spots */}
           <div className="flex items-center justify-between">
