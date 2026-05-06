@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getCategoryConfig, getCategoryGradient } from "./CategoryBadge";
 import { WeatherDisplay } from "./WeatherDisplay";
 import { getStoredLocationLabel, getStoredLocationTimezone } from "@/lib/location";
-import { formatInTimeZone } from "@/lib/date-time";
+import { formatInTimeZone, getDateLabelInTimeZone } from "@/lib/date-time";
 import type { ActivityWithAttendees } from "@/types/app";
 
 function getDescriptionPreview(description: string | null) {
@@ -27,6 +27,7 @@ export function FeedItem({ activity }: { activity: ActivityWithAttendees }) {
   const gradientClass = getCategoryGradient(activity.category);
   const timeZone = getStoredLocationTimezone(activity.location);
   const descriptionPreview = getDescriptionPreview(activity.description);
+  const dateLabel = getDateLabelInTimeZone(activity.activity_date, timeZone);
 
   const approvedAttendees = activity.join_requests
     .filter((req) => req.status === "approved")
@@ -58,11 +59,6 @@ export function FeedItem({ activity }: { activity: ActivityWithAttendees }) {
             <div className="bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs font-semibold text-gray-900 shadow-sm">
               {c.emoji} {c.label}
             </div>
-
-            {/* Time badge */}
-            <div className="bg-black/45 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs font-medium text-white">
-              {formatTime(activity.activity_date, timeZone)}
-            </div>
           </div>
         </div>
 
@@ -77,6 +73,16 @@ export function FeedItem({ activity }: { activity: ActivityWithAttendees }) {
                 {descriptionPreview}
               </p>
             )}
+          </div>
+
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <div className="text-sm font-semibold text-gray-950">{dateLabel}</div>
+              <div className="text-sm text-gray-500">{formatTime(activity.activity_date, timeZone)}</div>
+            </div>
+            <div className="text-xs uppercase tracking-[0.2em] text-gray-400">
+              {activity.is_outdoor ? "Outdoor" : "Indoor"}
+            </div>
           </div>
 
           <div className="flex items-center justify-between gap-3">
@@ -118,7 +124,7 @@ export function FeedItem({ activity }: { activity: ActivityWithAttendees }) {
           )}
 
           {/* Row 2: Attendees and Spots */}
-          <div className="flex items-center justify-between pt-2 mt-auto">
+          <div className="flex items-end justify-between pt-2 mt-auto gap-4">
             <div className="flex items-center gap-2">
               {approvedAttendees.length > 0 && (
                 <div className="flex -space-x-1.5">
@@ -147,9 +153,11 @@ export function FeedItem({ activity }: { activity: ActivityWithAttendees }) {
                 </span>
               )}
             </div>
-            <span className="text-sm font-semibold text-gray-700">
-              {activity.spots_available} left
-            </span>
+            <div className="text-right">
+              <span className="text-sm font-semibold text-gray-700 block">
+                {activity.spots_available} left
+              </span>
+            </div>
           </div>
         </div>
       </div>

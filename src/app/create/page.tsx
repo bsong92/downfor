@@ -119,7 +119,7 @@ export default function CreatePage() {
     : "Add a short description so people know what to expect.";
 
   return (
-    <div className="min-h-screen flex flex-col bg-transparent">
+    <div className="min-h-screen flex flex-col bg-gray-50">
       <Navbar />
 
       <div className="flex-1 max-w-[1500px] w-full mx-auto px-4 lg:px-6 py-6 lg:py-10">
