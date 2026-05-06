@@ -20,7 +20,7 @@ export default function CreatePage() {
   const [coverPhotoUrl, setCoverPhotoUrl] = useState("");
   const [timeZone, setTimeZone] = useState("America/Chicago");
   const [form, setForm] = useState({
-    category: "workout",
+    category: "fitness",
     title: "",
     description: "",
     date: "",

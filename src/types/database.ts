@@ -48,14 +48,15 @@ export type JoinRequest = {
 };
 
 export const CATEGORIES = [
-  "workout",
-  "golf",
-  "concerts",
-  "climbing",
-  "movies",
-  "food",
+  "fitness",
+  "outdoors",
   "sports",
-  "study",
+  "food-drink",
+  "social",
+  "arts-culture",
+  "entertainment",
+  "learning",
+  "wellness",
   "other",
 ] as const;
 

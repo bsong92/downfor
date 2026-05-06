@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { FeedItem } from "@/components/FeedItem";
-import { getCategoryConfig, ALL_CATEGORIES } from "@/components/CategoryBadge";
+import { getCategoryConfig, ALL_CATEGORIES, normalizeCategory } from "@/components/CategoryBadge";
 import { FAB } from "@/components/FAB";
 import { getStoredLocationTimezone } from "@/lib/location";
 import type { ActivityWithAttendees } from "@/types/app";
@@ -16,7 +16,7 @@ export function FeedClient({ activities }: { activities: ActivityWithAttendees[]
 
   // Filter by category
   const filtered = activeCategory
-    ? activities.filter((a) => a.category === activeCategory)
+    ? activities.filter((a) => normalizeCategory(a.category) === activeCategory)
     : activities;
 
   // Split upcoming vs past

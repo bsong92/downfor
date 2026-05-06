@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { CATEGORIES } from "@/types/database";
 import { updateActivity } from "@/app/actions";
-import { CategoryBadge } from "@/components/CategoryBadge";
+import { CategoryBadge, normalizeCategory } from "@/components/CategoryBadge";
 import { LocationAutocomplete } from "@/components/LocationAutocomplete";
 import {
   getStoredLocationCoordinates,
@@ -25,7 +25,7 @@ export function ActivityEditClient({ activity }: { activity: ActivityWithPoster 
   const storedTimeZone = getStoredLocationTimezone(activity.location);
 
   const [form, setForm] = useState({
-    category: activity.category,
+    category: normalizeCategory(activity.category),
     title: activity.title,
     description: activity.description || "",
     date: dateStr,

@@ -1,5 +1,6 @@
 import type { WeatherData } from "@/types/database";
 import type { Category } from "@/types/database";
+import { normalizeCategory } from "@/components/CategoryBadge";
 
 export type WeatherRecommendationTone = "good" | "caution" | "bad";
 
@@ -9,19 +10,24 @@ export type WeatherRecommendation = {
 };
 
 function getActivityWord(category?: Category | string) {
-  switch (category) {
-    case "food":
+  switch (normalizeCategory(category ?? "")) {
+    case "food-drink":
       return "Picnic";
-    case "workout":
+    case "fitness":
       return "Workout";
-    case "golf":
+    case "outdoors":
       return "Golf";
-    case "climbing":
-      return "Climbing";
     case "sports":
       return "Outdoor plans";
-    case "concerts":
+    case "arts-culture":
+    case "entertainment":
       return "Outdoor plans";
+    case "learning":
+      return "Study session";
+    case "social":
+      return "Hangout";
+    case "wellness":
+      return "Wellness plan";
     default:
       return "Outdoor plans";
   }
