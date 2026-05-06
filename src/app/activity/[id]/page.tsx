@@ -130,7 +130,19 @@ export default async function ActivityDetailPage({
               </p>
             </div>
           </div>
-          {isMyActivity && <ActivityEditClient activity={activity} />}
+          {isMyActivity && (
+            <div className="flex items-center gap-2">
+              {approvedRequests.length > 0 && (
+                <Link
+                  href="#activity-chat"
+                  className="rounded-full bg-indigo-100 px-4 py-2 text-sm font-semibold text-indigo-700 hover:bg-indigo-200 transition-colors"
+                >
+                  Open chat
+                </Link>
+              )}
+              <ActivityEditClient activity={activity} />
+            </div>
+          )}
         </div>
 
         {/* Details */}
@@ -250,7 +262,10 @@ export default async function ActivityDetailPage({
           </div>
         )}
 
-        <section className="mb-6 rounded-[28px] border border-gray-200/80 bg-white/90 backdrop-blur p-5 md:p-6 shadow-[0_18px_60px_rgba(15,23,42,0.05)]">
+        <section
+          id="activity-chat"
+          className="mb-6 rounded-[28px] border border-gray-200/80 bg-white/90 backdrop-blur p-5 md:p-6 shadow-[0_18px_60px_rgba(15,23,42,0.05)]"
+        >
           <div className="flex items-end justify-between gap-4 mb-5">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-indigo-600 mb-2">
