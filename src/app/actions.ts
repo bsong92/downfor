@@ -55,7 +55,13 @@ export async function createActivity(data: {
     if (error) return { success: false, error: error.message };
 
     if (activity && data.is_outdoor) {
-      await updateActivityWeather(activity.id, data.location, data.date, data.is_outdoor);
+      try {
+        console.log(`[createActivity] Fetching weather for ${activity.id}`);
+        const weatherResult = await updateActivityWeather(activity.id, data.location, data.date, data.is_outdoor);
+        console.log(`[createActivity] Weather result:`, weatherResult);
+      } catch (weatherErr) {
+        console.error(`[createActivity] Weather fetch error:`, weatherErr);
+      }
     }
 
     revalidatePath("/feed");
