@@ -5,6 +5,15 @@ import { getStoredLocationLabel, getStoredLocationTimezone } from "@/lib/locatio
 import { formatInTimeZone } from "@/lib/date-time";
 import type { ActivityWithAttendees } from "@/types/app";
 
+function getDescriptionPreview(description: string | null) {
+  if (!description) return null;
+
+  const trimmed = description.trim();
+  const words = trimmed.split(/\s+/);
+  if (words.length <= 14) return trimmed;
+  return `${words.slice(0, 14).join(" ")}...`;
+}
+
 function formatTime(dateStr: string, timeZone: string | null) {
   return formatInTimeZone(dateStr, timeZone, {
     hour: "numeric",
@@ -17,6 +26,7 @@ export function FeedItem({ activity }: { activity: ActivityWithAttendees }) {
   const c = getCategoryConfig(activity.category);
   const gradientClass = getCategoryGradient(activity.category);
   const timeZone = getStoredLocationTimezone(activity.location);
+  const descriptionPreview = getDescriptionPreview(activity.description);
 
   const approvedAttendees = activity.join_requests
     .filter((req) => req.status === "approved")
@@ -28,10 +38,10 @@ export function FeedItem({ activity }: { activity: ActivityWithAttendees }) {
   ).length;
 
   return (
-    <Link href={`/activity/${activity.id}`} className="block group">
-      <div className="bg-white rounded-2xl overflow-hidden border border-gray-200 hover:shadow-xl hover:border-indigo-300 transition-all duration-300 mb-4">
+    <Link href={`/activity/${activity.id}`} className="block group h-full">
+      <div className="h-full bg-white rounded-[28px] overflow-hidden border border-gray-200/80 hover:shadow-[0_22px_70px_rgba(79,70,229,0.14)] hover:border-indigo-300 transition-all duration-300 mb-4 flex flex-col">
         {/* Hero section */}
-        <div className={`relative h-44 ${gradientClass}`}>
+        <div className={`relative h-56 md:h-64 ${gradientClass}`}>
           {activity.image_url && (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -41,30 +51,35 @@ export function FeedItem({ activity }: { activity: ActivityWithAttendees }) {
             />
           )}
           {/* Dark overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/15 to-transparent" />
 
-          {/* Category pill */}
-          <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-2.5 py-1 rounded-full text-xs font-semibold text-gray-900">
-            {c.emoji} {c.label}
-          </div>
+          <div className="absolute top-4 left-4 right-4 flex items-start justify-between gap-3">
+            {/* Category pill */}
+            <div className="bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs font-semibold text-gray-900 shadow-sm">
+              {c.emoji} {c.label}
+            </div>
 
-          {/* Time badge */}
-          <div className="absolute top-3 right-3 bg-black/40 backdrop-blur-sm px-2.5 py-1 rounded-full text-xs font-medium text-white">
-            {formatTime(activity.activity_date, timeZone)}
-          </div>
-
-          {/* Title overlaid at bottom */}
-          <div className="absolute bottom-3 left-3 right-3">
-            <h3 className="text-white font-bold text-lg leading-snug line-clamp-2 group-hover:text-indigo-200 transition-colors">
-              {activity.title}
-            </h3>
+            {/* Time badge */}
+            <div className="bg-black/45 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs font-medium text-white">
+              {formatTime(activity.activity_date, timeZone)}
+            </div>
           </div>
         </div>
 
         {/* Body */}
-        <div className="p-4">
-          {/* Row 1: Location and Host */}
-          <div className="flex items-center justify-between mb-3 gap-2">
+        <div className="flex-1 p-5 md:p-6 space-y-4 flex flex-col">
+          <div className="space-y-2">
+            <h3 className="font-display text-[1.35rem] md:text-[1.5rem] leading-tight text-gray-900 group-hover:text-indigo-700 transition-colors">
+              {activity.title}
+            </h3>
+            {descriptionPreview && (
+              <p className="text-sm leading-6 text-gray-600 line-clamp-2">
+                {descriptionPreview}
+              </p>
+            )}
+          </div>
+
+          <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-1.5 text-sm text-gray-600 flex-1 min-w-0">
               <span>📍</span>
               <span className="truncate">{getStoredLocationLabel(activity.location)}</span>
@@ -88,7 +103,7 @@ export function FeedItem({ activity }: { activity: ActivityWithAttendees }) {
 
           {/* Weather for outdoor activities */}
           {activity.is_outdoor && activity.weather_data && (
-            <div className="mb-3">
+            <div className="pt-1">
               <WeatherDisplay
                 weather={activity.weather_data}
                 variant="compact"
@@ -97,13 +112,13 @@ export function FeedItem({ activity }: { activity: ActivityWithAttendees }) {
             </div>
           )}
           {activity.is_outdoor && !activity.weather_data && (
-            <div className="mb-3 text-xs text-gray-500">
+            <div className="text-xs text-gray-500">
               Weather pending
             </div>
           )}
 
           {/* Row 2: Attendees and Spots */}
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between pt-1 mt-auto">
             <div className="flex items-center gap-2">
               {approvedAttendees.length > 0 && (
                 <div className="flex -space-x-1.5">

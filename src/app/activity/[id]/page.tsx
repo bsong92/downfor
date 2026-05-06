@@ -99,7 +99,7 @@ export default async function ActivityDetailPage({
       </div>
 
       {/* Content area */}
-      <div className="max-w-xl mx-auto px-4 py-8">
+      <div className="max-w-5xl mx-auto px-4 lg:px-6 py-10">
         {/* Host info */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">

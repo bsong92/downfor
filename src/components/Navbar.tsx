@@ -17,9 +17,12 @@ export function Navbar() {
   const hasClerk = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
 
   return (
-    <header className="sticky top-0 z-50 bg-white border-b border-gray-100">
-      <div className="max-w-3xl mx-auto px-4 h-14 flex items-center justify-between">
-        <Link href="/feed" className="text-lg font-bold text-indigo-600 tracking-tight">
+    <header className="sticky top-0 z-50 bg-white/80 backdrop-blur border-b border-gray-100/80">
+      <div className="max-w-7xl mx-auto px-4 lg:px-6 h-16 flex items-center justify-between">
+        <Link
+          href="/feed"
+          className="text-lg font-bold text-indigo-600 tracking-tight font-[family:var(--font-display)]"
+        >
           downfor
         </Link>
 

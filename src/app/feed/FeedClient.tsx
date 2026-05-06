@@ -42,24 +42,32 @@ export function FeedClient({ activities }: { activities: ActivityWithAttendees[]
   const grouped = groupByDay(displayActivities);
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-8">
+    <div className="max-w-7xl mx-auto px-4 lg:px-6 py-8">
       {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-baseline justify-between mb-6">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">What&apos;s happening</h1>
-            <p className="text-gray-500 text-sm mt-1">Find activities with your community</p>
+      <div className="mb-10">
+        <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 mb-8">
+          <div className="max-w-2xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-indigo-600 mb-3">
+              Downfor feed
+            </p>
+            <h1 className="font-display text-4xl md:text-5xl font-semibold text-gray-950 leading-tight">
+              What&apos;s happening
+            </h1>
+            <p className="text-gray-500 text-base mt-3 max-w-xl">
+              Find activities with your community, scan the weather, and jump into something
+              actually worth doing.
+            </p>
           </div>
           <Link
             href="/create"
-            className="bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white px-5 py-2.5 rounded-lg text-sm font-bold transition-all duration-200 whitespace-nowrap"
+            className="inline-flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white px-5 py-3 rounded-full text-sm font-semibold transition-all duration-200 whitespace-nowrap shadow-lg shadow-indigo-200"
           >
             + Post activity
           </Link>
         </div>
 
         {/* Upcoming/Past Toggle */}
-        <div className="flex gap-4 border-b border-gray-200 mb-4 pb-4">
+        <div className="flex gap-4 border-b border-gray-200 mb-5 pb-4">
           <button
             onClick={() => setActiveTab("upcoming")}
             className={`pb-3 text-sm font-semibold transition-colors ${
@@ -83,7 +91,7 @@ export function FeedClient({ activities }: { activities: ActivityWithAttendees[]
         </div>
 
         {/* Category filter */}
-        <div className="flex gap-2 flex-wrap pb-4 border-b border-gray-200">
+        <div className="flex gap-2 flex-wrap pb-5 border-b border-gray-200">
           <button
             onClick={() => setActiveCategory(null)}
             className={`px-3 py-1.5 rounded-full text-sm font-semibold transition-all ${
@@ -137,23 +145,22 @@ export function FeedClient({ activities }: { activities: ActivityWithAttendees[]
           )}
         </div>
       ) : (
-        <div className="space-y-8">
+        <div className="space-y-10">
           {Array.from(grouped.entries()).map(([dateKey, dayActivities]) => (
             <div key={dateKey}>
               {/* Date header with sidebar */}
-              <div className="flex items-start gap-4 mb-4">
+              <div className="grid gap-5 lg:grid-cols-[120px,minmax(0,1fr)] items-start">
                 {/* Sidebar: date label + line */}
-                <div className="w-20 flex-shrink-0">
+                <div className="pt-1">
                   <div className="text-sm font-semibold text-gray-700 mb-2">
                     {getDateLabelInTimeZone(
                       dayActivities[0].activity_date,
                       getStoredLocationTimezone(dayActivities[0].location)
                     )}
                   </div>
-                  <div className="w-0.5 h-12 bg-gray-300 mx-auto"></div>
                 </div>
                 {/* Activities for this day */}
-                <div className="flex-1 space-y-3">
+                <div className="grid gap-5 xl:grid-cols-2">
                   {dayActivities.map((activity) => (
                     <FeedItem key={activity.id} activity={activity} />
                   ))}
