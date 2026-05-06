@@ -6,22 +6,7 @@ import { FeedItem } from "@/components/FeedItem";
 import { getCategoryConfig, ALL_CATEGORIES } from "@/components/CategoryBadge";
 import { FAB } from "@/components/FAB";
 import { getStoredLocationTimezone } from "@/lib/location";
-import { getDateKeyInTimeZone, getDateLabelInTimeZone } from "@/lib/date-time";
 import type { ActivityWithAttendees } from "@/types/app";
-
-function groupByDay(
-  activities: ActivityWithAttendees[]
-): Map<string, ActivityWithAttendees[]> {
-  const groups = new Map<string, ActivityWithAttendees[]>();
-  activities.forEach((activity) => {
-    const key = getDateKeyInTimeZone(activity.activity_date, getStoredLocationTimezone(activity.location));
-    if (!groups.has(key)) {
-      groups.set(key, []);
-    }
-    groups.get(key)!.push(activity);
-  });
-  return groups;
-}
 
 export function FeedClient({ activities }: { activities: ActivityWithAttendees[] }) {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
@@ -39,7 +24,9 @@ export function FeedClient({ activities }: { activities: ActivityWithAttendees[]
   const pastActivities = filtered.filter((a) => new Date(a.activity_date) < now).reverse();
 
   const displayActivities = activeTab === "upcoming" ? upcomingActivities : pastActivities;
-  const grouped = groupByDay(displayActivities);
+  const sortedActivities = [...displayActivities].sort(
+    (a, b) => new Date(a.activity_date).getTime() - new Date(b.activity_date).getTime()
+  );
 
   return (
     <div className="max-w-7xl mx-auto px-4 lg:px-6 py-8">
@@ -145,28 +132,9 @@ export function FeedClient({ activities }: { activities: ActivityWithAttendees[]
           )}
         </div>
       ) : (
-        <div className="space-y-10">
-          {Array.from(grouped.entries()).map(([dateKey, dayActivities]) => (
-            <div key={dateKey}>
-              {/* Date header with sidebar */}
-              <div className="grid gap-5 lg:grid-cols-[120px,minmax(0,1fr)] items-start">
-                {/* Sidebar: date label + line */}
-                <div className="pt-1">
-                  <div className="text-sm font-semibold text-gray-700 mb-2">
-                    {getDateLabelInTimeZone(
-                      dayActivities[0].activity_date,
-                      getStoredLocationTimezone(dayActivities[0].location)
-                    )}
-                  </div>
-                </div>
-                {/* Activities for this day */}
-                <div className="grid gap-5 xl:grid-cols-2">
-                  {dayActivities.map((activity) => (
-                    <FeedItem key={activity.id} activity={activity} />
-                  ))}
-                </div>
-              </div>
-            </div>
+        <div className="grid gap-6 xl:grid-cols-2 items-stretch">
+          {sortedActivities.map((activity) => (
+            <FeedItem key={activity.id} activity={activity} />
           ))}
         </div>
       )}

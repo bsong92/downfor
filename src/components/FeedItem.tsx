@@ -41,7 +41,7 @@ export function FeedItem({ activity }: { activity: ActivityWithAttendees }) {
     <Link href={`/activity/${activity.id}`} className="block group h-full">
       <div className="h-full bg-white rounded-[28px] overflow-hidden border border-gray-200/80 hover:shadow-[0_22px_70px_rgba(79,70,229,0.14)] hover:border-indigo-300 transition-all duration-300 mb-4 flex flex-col">
         {/* Hero section */}
-        <div className={`relative h-56 md:h-64 ${gradientClass}`}>
+        <div className={`relative h-60 md:h-72 ${gradientClass}`}>
           {activity.image_url && (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -69,11 +69,11 @@ export function FeedItem({ activity }: { activity: ActivityWithAttendees }) {
         {/* Body */}
         <div className="flex-1 p-5 md:p-6 space-y-4 flex flex-col">
           <div className="space-y-2">
-            <h3 className="font-display text-[1.35rem] md:text-[1.5rem] leading-tight text-gray-900 group-hover:text-indigo-700 transition-colors">
+            <h3 className="font-display text-[1.45rem] md:text-[1.7rem] leading-tight text-gray-950 group-hover:text-indigo-700 transition-colors">
               {activity.title}
             </h3>
             {descriptionPreview && (
-              <p className="text-sm leading-6 text-gray-600 line-clamp-2">
+              <p className="text-[0.95rem] leading-6 text-gray-600 line-clamp-2">
                 {descriptionPreview}
               </p>
             )}
@@ -118,7 +118,7 @@ export function FeedItem({ activity }: { activity: ActivityWithAttendees }) {
           )}
 
           {/* Row 2: Attendees and Spots */}
-          <div className="flex items-center justify-between pt-1 mt-auto">
+          <div className="flex items-center justify-between pt-2 mt-auto">
             <div className="flex items-center gap-2">
               {approvedAttendees.length > 0 && (
                 <div className="flex -space-x-1.5">

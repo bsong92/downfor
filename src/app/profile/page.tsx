@@ -36,7 +36,7 @@ export default async function ProfilePage() {
     <div className="min-h-screen bg-gray-50">
       <Navbar />
 
-      <div className="max-w-2xl mx-auto px-4 py-8">
+      <div className="max-w-7xl mx-auto px-4 lg:px-6 py-8">
         <ProfileClient initialUser={user} />
 
         <div className="mt-12">
