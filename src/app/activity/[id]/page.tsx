@@ -4,20 +4,11 @@ import { WeatherDisplay } from "@/components/WeatherDisplay";
 import { createServiceClient } from "@/lib/supabase-server";
 import { getRequiredProfile } from "@/lib/current-user";
 import { createJoinRequest, updateRequestStatus } from "@/app/actions";
-import { getStoredLocationLabel } from "@/lib/location";
+import { getStoredLocationLabel, getStoredLocationTimezone } from "@/lib/location";
+import { formatInTimeZone } from "@/lib/date-time";
 import type { ActivityWithPoster, JoinRequestWithRequester } from "@/types/app";
 import Link from "next/link";
 import { ActivityEditClient } from "@/app/activity/ActivityEditClient";
-
-function formatDateTime(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString("en-US", {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
-}
 
 export default async function ActivityDetailPage({
   params,
@@ -65,6 +56,7 @@ export default async function ActivityDetailPage({
 
   const c = getCategoryConfig(activity.category);
   const gradientClass = getCategoryGradient(activity.category);
+  const timeZone = getStoredLocationTimezone(activity.location);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -137,7 +129,15 @@ export default async function ActivityDetailPage({
         <div className="space-y-3 mb-6">
           <div className="flex items-center gap-2 text-gray-700">
             <span>📅</span>
-            <span className="text-sm">{formatDateTime(activity.activity_date)}</span>
+            <span className="text-sm">
+              {formatInTimeZone(activity.activity_date, timeZone, {
+                weekday: "long",
+                month: "long",
+                day: "numeric",
+                hour: "numeric",
+                minute: "2-digit",
+              })}
+            </span>
           </div>
           <div className="flex items-center gap-2 text-gray-700">
             <span>🎟️</span>

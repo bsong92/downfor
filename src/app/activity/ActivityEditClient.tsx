@@ -1,11 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CATEGORIES } from "@/types/database";
 import { updateActivity } from "@/app/actions";
 import { CategoryBadge } from "@/components/CategoryBadge";
 import { LocationAutocomplete } from "@/components/LocationAutocomplete";
-import { getStoredLocationCoordinates, getStoredLocationLabel } from "@/lib/location";
+import {
+  getStoredLocationCoordinates,
+  getStoredLocationLabel,
+  getStoredLocationTimezone,
+} from "@/lib/location";
+import { getBrowserTimeZone } from "@/lib/date-time";
 import type { ActivityWithPoster } from "@/types/app";
 
 export function ActivityEditClient({ activity }: { activity: ActivityWithPoster }) {
@@ -17,6 +22,7 @@ export function ActivityEditClient({ activity }: { activity: ActivityWithPoster 
   const dateStr = activityDate.toISOString().split("T")[0];
   const timeStr = activityDate.toTimeString().slice(0, 5);
   const storedLocation = getStoredLocationCoordinates(activity.location);
+  const storedTimeZone = getStoredLocationTimezone(activity.location);
 
   const [form, setForm] = useState({
     category: activity.category,
@@ -27,9 +33,21 @@ export function ActivityEditClient({ activity }: { activity: ActivityWithPoster 
     location: getStoredLocationLabel(activity.location),
     locationLatitude: storedLocation?.latitude ?? null,
     locationLongitude: storedLocation?.longitude ?? null,
+    locationTimezone: storedTimeZone ?? "America/Chicago",
     spots: activity.spots_available.toString(),
     is_outdoor: activity.is_outdoor ?? true,
   });
+  const [timeZone, setTimeZone] = useState(storedTimeZone ?? "America/Chicago");
+
+  useEffect(() => {
+    if (storedTimeZone) return;
+    const browserTimeZone = getBrowserTimeZone();
+    setTimeZone(browserTimeZone);
+    setForm((prev) => ({
+      ...prev,
+      locationTimezone: browserTimeZone,
+    }));
+  }, [storedTimeZone]);
 
   function set(field: string, value: string | boolean) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -39,7 +57,10 @@ export function ActivityEditClient({ activity }: { activity: ActivityWithPoster 
     setLoading(true);
     setError(null);
 
-    const result = await updateActivity(activity.id, form);
+    const result = await updateActivity(activity.id, {
+      ...form,
+      locationTimezone: form.locationTimezone || timeZone,
+    });
 
     if (result.success) {
       setIsEditing(false);
@@ -162,12 +183,13 @@ export function ActivityEditClient({ activity }: { activity: ActivityWithPoster 
               longitude={form.locationLongitude}
               placeholder="Where should people meet?"
               helperText="Pick a real place so weather can track it reliably."
-              onChange={({ value, latitude, longitude }) =>
+              onChange={({ value, latitude, longitude, timezone }) =>
                 setForm((prev) => ({
                   ...prev,
                   location: value,
                   locationLatitude: latitude,
                   locationLongitude: longitude,
+                  locationTimezone: timezone || prev.locationTimezone || timeZone,
                 }))
               }
             />

@@ -4,18 +4,21 @@ type GeocodingResult = {
   name: string;
   admin1?: string;
   country?: string;
+  timezone?: string;
 };
 
 export type ResolvedLocation = {
   label: string;
   latitude: number;
   longitude: number;
+  timezone?: string;
 };
 
 type EncodedLocation = {
   label: string;
   latitude: number;
   longitude: number;
+  timezone?: string;
 };
 
 function buildLocationCandidates(location: string): string[] {
@@ -41,7 +44,8 @@ function formatResolvedLocation(result: GeocodingResult) {
 export function encodeStoredLocation(
   label: string,
   latitude: number | null,
-  longitude: number | null
+  longitude: number | null,
+  timezone?: string | null
 ) {
   if (
     typeof latitude === "number" &&
@@ -54,6 +58,11 @@ export function encodeStoredLocation(
       latitude,
       longitude,
     };
+
+    if (timezone) {
+      payload.timezone = timezone.trim();
+    }
+
     return JSON.stringify(payload);
   }
 
@@ -76,6 +85,10 @@ export function decodeStoredLocation(raw: string): ResolvedLocation | null {
           label: parsed.label,
           latitude: parsed.latitude,
           longitude: parsed.longitude,
+          timezone:
+            typeof parsed.timezone === "string" && parsed.timezone.trim()
+              ? parsed.timezone.trim()
+              : undefined,
         };
       }
     } catch {
@@ -100,6 +113,10 @@ export function getStoredLocationCoordinates(raw: string) {
   };
 }
 
+export function getStoredLocationTimezone(raw: string) {
+  return decodeStoredLocation(raw)?.timezone ?? null;
+}
+
 export async function searchLocationSuggestions(
   query: string,
   count = 6
@@ -120,6 +137,7 @@ export async function searchLocationSuggestions(
     label: formatResolvedLocation(result),
     latitude: result.latitude,
     longitude: result.longitude,
+    timezone: typeof result.timezone === "string" ? result.timezone : undefined,
   }));
 }
 
@@ -133,6 +151,7 @@ export async function resolveLocation(location: string): Promise<ResolvedLocatio
         label: result.label,
         latitude: result.latitude,
         longitude: result.longitude,
+        timezone: result.timezone,
       };
     }
   }

@@ -1,18 +1,22 @@
 import Link from "next/link";
 import { getCategoryConfig, getCategoryGradient } from "./CategoryBadge";
 import { WeatherDisplay } from "./WeatherDisplay";
-import { getStoredLocationLabel } from "@/lib/location";
+import { getStoredLocationLabel, getStoredLocationTimezone } from "@/lib/location";
+import { formatInTimeZone } from "@/lib/date-time";
 import type { ActivityWithAttendees } from "@/types/app";
 
-function formatTime(dateStr: string) {
-  const d = new Date(dateStr);
-  return d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+function formatTime(dateStr: string, timeZone: string | null) {
+  return formatInTimeZone(dateStr, timeZone, {
+    hour: "numeric",
+    minute: "2-digit",
+  });
 }
 
 export function FeedItem({ activity }: { activity: ActivityWithAttendees }) {
   const { poster } = activity;
   const c = getCategoryConfig(activity.category);
   const gradientClass = getCategoryGradient(activity.category);
+  const timeZone = getStoredLocationTimezone(activity.location);
 
   const approvedAttendees = activity.join_requests
     .filter((req) => req.status === "approved")
@@ -46,7 +50,7 @@ export function FeedItem({ activity }: { activity: ActivityWithAttendees }) {
 
           {/* Time badge */}
           <div className="absolute top-3 right-3 bg-black/40 backdrop-blur-sm px-2.5 py-1 rounded-full text-xs font-medium text-white">
-            {formatTime(activity.activity_date)}
+            {formatTime(activity.activity_date, timeZone)}
           </div>
 
           {/* Title overlaid at bottom */}

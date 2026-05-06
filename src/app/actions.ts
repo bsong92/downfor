@@ -2,6 +2,7 @@
 
 import { createServiceClient } from "@/lib/supabase-server";
 import { getRequiredProfile } from "@/lib/current-user";
+import { zonedDateTimeToUtcIso } from "@/lib/date-time";
 import {
   encodeStoredLocation,
   resolveLocation,
@@ -25,6 +26,7 @@ export async function createActivity(data: {
   image_url?: string;
   locationLatitude?: number | null;
   locationLongitude?: number | null;
+  locationTimezone?: string | null;
 }) {
   try {
     const supabase = createServiceClient();
@@ -35,22 +37,17 @@ export async function createActivity(data: {
     const storedLocation = encodeStoredLocation(
       resolvedLocation?.label ?? data.location,
       latitude,
-      longitude
+      longitude,
+      data.locationTimezone
     );
 
-    const [year, month, day] = data.date.split("-");
-    const [hours, minutes] = data.time.split(":");
-    const activityDate = new Date(
-      Date.UTC(
-        parseInt(year),
-        parseInt(month) - 1,
-        parseInt(day),
-        parseInt(hours),
-        parseInt(minutes)
-      )
+    const activityDateIso = zonedDateTimeToUtcIso(
+      data.date,
+      data.time,
+      data.locationTimezone
     );
 
-    if (Number.isNaN(activityDate.getTime())) {
+    if (!activityDateIso) {
       return { success: false, error: "Please enter a valid date and time." };
     }
 
@@ -59,7 +56,7 @@ export async function createActivity(data: {
       category: data.category,
       title: data.title,
       description: data.description || null,
-      activity_date: activityDate.toISOString(),
+      activity_date: activityDateIso,
       location: storedLocation,
       spots_available: parseInt(data.spots, 10),
       is_outdoor: data.is_outdoor,
@@ -169,6 +166,7 @@ export async function updateActivity(activityId: string, data: {
   is_outdoor?: boolean;
   locationLatitude?: number | null;
   locationLongitude?: number | null;
+  locationTimezone?: string | null;
 }) {
   try {
     const supabase = createServiceClient();
@@ -179,7 +177,8 @@ export async function updateActivity(activityId: string, data: {
     const storedLocation = encodeStoredLocation(
       resolvedLocation?.label ?? data.location,
       latitude,
-      longitude
+      longitude,
+      data.locationTimezone
     );
 
     // Verify user is the poster
@@ -193,18 +192,12 @@ export async function updateActivity(activityId: string, data: {
       return { success: false, error: "Not authorized to edit this activity" };
     }
 
-    const [year, month, day] = data.date.split("-");
-    const [hours, minutes] = data.time.split(":");
-    const activityDate = new Date(
-      Date.UTC(
-        parseInt(year),
-        parseInt(month) - 1,
-        parseInt(day),
-        parseInt(hours),
-        parseInt(minutes)
-      )
+    const activityDateIso = zonedDateTimeToUtcIso(
+      data.date,
+      data.time,
+      data.locationTimezone
     );
-    if (Number.isNaN(activityDate.getTime())) {
+    if (!activityDateIso) {
       return { success: false, error: "Please enter a valid date and time." };
     }
 
@@ -212,7 +205,7 @@ export async function updateActivity(activityId: string, data: {
       category: data.category,
       title: data.title,
       description: data.description || null,
-      activity_date: activityDate.toISOString(),
+      activity_date: activityDateIso,
       location: storedLocation,
       spots_available: parseInt(data.spots, 10),
       updated_at: new Date().toISOString(),

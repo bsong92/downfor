@@ -5,33 +5,16 @@ import Link from "next/link";
 import { FeedItem } from "@/components/FeedItem";
 import { getCategoryConfig, ALL_CATEGORIES } from "@/components/CategoryBadge";
 import { FAB } from "@/components/FAB";
+import { getStoredLocationTimezone } from "@/lib/location";
+import { getDateKeyInTimeZone, getDateLabelInTimeZone } from "@/lib/date-time";
 import type { ActivityWithAttendees } from "@/types/app";
-
-function getDateLabel(dateStr: string): string {
-  const d = new Date(dateStr);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const tomorrow = new Date(today);
-  tomorrow.setDate(today.getDate() + 1);
-  const activityDay = new Date(d);
-  activityDay.setHours(0, 0, 0, 0);
-
-  if (activityDay.getTime() === today.getTime()) return "Today";
-  if (activityDay.getTime() === tomorrow.getTime()) return "Tomorrow";
-  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", weekday: "short" });
-}
-
-function getDateKey(dateStr: string): string {
-  const d = new Date(dateStr);
-  return d.toISOString().split("T")[0];
-}
 
 function groupByDay(
   activities: ActivityWithAttendees[]
 ): Map<string, ActivityWithAttendees[]> {
   const groups = new Map<string, ActivityWithAttendees[]>();
   activities.forEach((activity) => {
-    const key = getDateKey(activity.activity_date);
+    const key = getDateKeyInTimeZone(activity.activity_date, getStoredLocationTimezone(activity.location));
     if (!groups.has(key)) {
       groups.set(key, []);
     }
@@ -162,7 +145,10 @@ export function FeedClient({ activities }: { activities: ActivityWithAttendees[]
                 {/* Sidebar: date label + line */}
                 <div className="w-20 flex-shrink-0">
                   <div className="text-sm font-semibold text-gray-700 mb-2">
-                    {getDateLabel(dayActivities[0].activity_date)}
+                    {getDateLabelInTimeZone(
+                      dayActivities[0].activity_date,
+                      getStoredLocationTimezone(dayActivities[0].location)
+                    )}
                   </div>
                   <div className="w-0.5 h-12 bg-gray-300 mx-auto"></div>
                 </div>

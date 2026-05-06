@@ -7,6 +7,7 @@ export type LocationSelection = {
   label: string;
   latitude: number;
   longitude: number;
+  timezone?: string;
 };
 
 type LocationAutocompleteProps = {
@@ -20,6 +21,7 @@ type LocationAutocompleteProps = {
     value: string;
     latitude: number | null;
     longitude: number | null;
+    timezone?: string | null;
   }) => void;
 };
 
@@ -101,6 +103,7 @@ export function LocationAutocomplete({
       value: selection.label,
       latitude: selection.latitude,
       longitude: selection.longitude,
+      timezone: selection.timezone ?? null,
     });
     setSuggestions([]);
     setOpen(false);
@@ -119,7 +122,7 @@ export function LocationAutocomplete({
         onChange={(e) => {
           const next = e.target.value;
           setQuery(next);
-          onChange({ value: next, latitude: null, longitude: null });
+          onChange({ value: next, latitude: null, longitude: null, timezone: null });
         }}
         className="w-full px-4 py-3 rounded-lg bg-white border border-gray-200 text-sm font-medium text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-300"
       />

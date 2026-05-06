@@ -1,16 +1,14 @@
 import Link from "next/link";
 import { CategoryBadge, getCategoryConfig } from "./CategoryBadge";
-import { getStoredLocationLabel } from "@/lib/location";
+import { getStoredLocationLabel, getStoredLocationTimezone } from "@/lib/location";
+import { formatInTimeZone, getDateLabelInTimeZone } from "@/lib/date-time";
 import type { ActivityWithAttendees } from "@/types/app";
 
-function formatDate(dateStr: string) {
-  const d = new Date(dateStr);
-  return d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
-}
-
-function formatTime(dateStr: string) {
-  const d = new Date(dateStr);
-  return d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+function formatTime(dateStr: string, timeZone: string | null) {
+  return formatInTimeZone(dateStr, timeZone, {
+    hour: "numeric",
+    minute: "2-digit",
+  });
 }
 
 function getUrgencyIndicator(spots: number) {
@@ -24,6 +22,7 @@ export function ActivityCard({ activity }: { activity: ActivityWithAttendees }) 
   const { poster } = activity;
   const urgency = getUrgencyIndicator(activity.spots_available);
   const c = getCategoryConfig(activity.category);
+  const timeZone = getStoredLocationTimezone(activity.location);
 
   // Get approved attendees for social proof
   const approvedAttendees = activity.join_requests
@@ -47,7 +46,9 @@ export function ActivityCard({ activity }: { activity: ActivityWithAttendees }) 
               {c.label}
             </span>
           </div>
-          <span className="text-xs text-gray-400">{formatDate(activity.activity_date)}</span>
+          <span className="text-xs text-gray-400">
+            {getDateLabelInTimeZone(activity.activity_date, timeZone)}
+          </span>
         </div>
 
         {/* Middle: Title + description */}
@@ -65,7 +66,8 @@ export function ActivityCard({ activity }: { activity: ActivityWithAttendees }) 
             <div className="flex items-center gap-2">
               <span className="text-base">📅</span>
               <span className="font-medium">
-                {formatDate(activity.activity_date)} at {formatTime(activity.activity_date)}
+                {getDateLabelInTimeZone(activity.activity_date, timeZone)} at{" "}
+                {formatTime(activity.activity_date, timeZone)}
               </span>
             </div>
             <div className="flex items-center gap-2">

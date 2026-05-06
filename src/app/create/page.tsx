@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Navbar } from "@/components/Navbar";
 import { CATEGORIES } from "@/types/database";
 import { getCategoryConfig, getCategoryGradient } from "@/components/CategoryBadge";
 import { LocationAutocomplete } from "@/components/LocationAutocomplete";
 import { createActivity, uploadActivityPhoto } from "@/app/actions";
+import { getBrowserTimeZone } from "@/lib/date-time";
 
 export default function CreatePage() {
   const router = useRouter();
@@ -16,6 +17,7 @@ export default function CreatePage() {
   const [error, setError] = useState<string | null>(null);
   const [showDescription, setShowDescription] = useState(false);
   const [coverPhotoUrl, setCoverPhotoUrl] = useState("");
+  const [timeZone, setTimeZone] = useState("America/Chicago");
   const [form, setForm] = useState({
     category: "workout",
     title: "",
@@ -25,9 +27,19 @@ export default function CreatePage() {
     location: "",
     locationLatitude: null as number | null,
     locationLongitude: null as number | null,
+    locationTimezone: "America/Chicago",
     spots: "2",
     is_outdoor: true,
   });
+
+  useEffect(() => {
+    const browserTimeZone = getBrowserTimeZone();
+    setTimeZone(browserTimeZone);
+    setForm((prev) => ({
+      ...prev,
+      locationTimezone: browserTimeZone,
+    }));
+  }, []);
 
   function set(field: string, value: string | boolean) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -65,6 +77,7 @@ export default function CreatePage() {
         location: form.location,
         locationLatitude: form.locationLatitude,
         locationLongitude: form.locationLongitude,
+        locationTimezone: form.locationTimezone || timeZone,
         spots: form.spots,
         is_outdoor: form.is_outdoor,
         image_url: coverPhotoUrl || undefined,
@@ -234,12 +247,13 @@ export default function CreatePage() {
               longitude={form.locationLongitude}
               placeholder="Jackson Park, gym, coffee shop..."
               helperText="Pick a real place so weather can use map coordinates."
-              onChange={({ value, latitude, longitude }) =>
+              onChange={({ value, latitude, longitude, timezone }) =>
                 setForm((prev) => ({
                   ...prev,
                   location: value,
                   locationLatitude: latitude,
                   locationLongitude: longitude,
+                  locationTimezone: timezone || prev.locationTimezone || timeZone,
                 }))
               }
             />
