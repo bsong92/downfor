@@ -233,6 +233,9 @@ export default function CreatePage() {
               onChange={(e) => set("location", e.target.value)}
               className="w-full px-4 py-3 rounded-lg bg-white border border-gray-200 text-sm font-medium text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-300"
             />
+            <p className="mt-2 text-xs text-gray-500">
+              We&apos;ll resolve this place so weather can use real map coordinates.
+            </p>
           </div>
 
           {/* Spots Section */}

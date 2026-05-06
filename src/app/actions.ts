@@ -2,6 +2,7 @@
 
 import { createServiceClient } from "@/lib/supabase-server";
 import { getRequiredProfile } from "@/lib/current-user";
+import { resolveLocation } from "@/lib/location";
 import { revalidatePath } from "next/cache";
 
 async function fileToBuffer(file: File): Promise<Buffer> {
@@ -23,6 +24,7 @@ export async function createActivity(data: {
   try {
     const supabase = createServiceClient();
     const user = await getRequiredProfile();
+    const resolvedLocation = await resolveLocation(data.location);
 
     const [year, month, day] = data.date.split("-");
     const [hours, minutes] = data.time.split(":");
@@ -46,7 +48,7 @@ export async function createActivity(data: {
       title: data.title,
       description: data.description || null,
       activity_date: activityDate.toISOString(),
-      location: data.location,
+      location: resolvedLocation?.displayLocation ?? data.location,
       spots_available: parseInt(data.spots, 10),
       is_outdoor: data.is_outdoor,
       image_url: data.image_url || null,
@@ -57,7 +59,12 @@ export async function createActivity(data: {
     if (activity && data.is_outdoor) {
       try {
         console.log(`[createActivity] Fetching weather for ${activity.id}`);
-        const weatherResult = await updateActivityWeather(activity.id, data.location, data.date, data.is_outdoor);
+        const weatherResult = await updateActivityWeather(
+          activity.id,
+          resolvedLocation?.displayLocation ?? data.location,
+          data.date,
+          data.is_outdoor
+        );
         console.log(`[createActivity] Weather result:`, weatherResult);
       } catch (weatherErr) {
         console.error(`[createActivity] Weather fetch error:`, weatherErr);
@@ -152,6 +159,7 @@ export async function updateActivity(activityId: string, data: {
   try {
     const supabase = createServiceClient();
     const user = await getRequiredProfile();
+    const resolvedLocation = await resolveLocation(data.location);
 
     // Verify user is the poster
     const { data: activity } = await supabase
@@ -184,7 +192,7 @@ export async function updateActivity(activityId: string, data: {
       title: data.title,
       description: data.description || null,
       activity_date: activityDate.toISOString(),
-      location: data.location,
+      location: resolvedLocation?.displayLocation ?? data.location,
       spots_available: parseInt(data.spots, 10),
       updated_at: new Date().toISOString(),
     };
@@ -201,7 +209,12 @@ export async function updateActivity(activityId: string, data: {
     if (error) return { success: false, error: error.message };
 
     if (data.is_outdoor) {
-      await updateActivityWeather(activityId, data.location, data.date, data.is_outdoor);
+      await updateActivityWeather(
+        activityId,
+        resolvedLocation?.displayLocation ?? data.location,
+        data.date,
+        data.is_outdoor
+      );
     }
 
     revalidatePath(`/activity/${activityId}`);

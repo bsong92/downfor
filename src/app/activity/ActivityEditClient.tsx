@@ -157,6 +157,9 @@ export function ActivityEditClient({ activity }: { activity: ActivityWithPoster 
               placeholder="Where should people meet?"
               className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent"
             />
+            <p className="mt-2 text-xs text-gray-500">
+              This will be resolved to a real place so weather can track it reliably.
+            </p>
           </div>
 
           {/* Spots */}
