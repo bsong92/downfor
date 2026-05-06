@@ -99,6 +99,7 @@ export async function createJoinRequest(activityId: string): Promise<void> {
     requester_id: user.id,
   });
   revalidatePath(`/activity/${activityId}`);
+  revalidatePath("/requests");
 }
 
 // Used as a form action (must return void)
@@ -153,6 +154,7 @@ export async function updateRequestStatus(
 
   revalidatePath(`/activity/${activityId}`);
   revalidatePath("/feed");
+  revalidatePath("/requests");
 }
 
 export async function updateActivity(activityId: string, data: {

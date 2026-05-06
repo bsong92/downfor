@@ -7,6 +7,7 @@ import { useUser } from "@/context/UserContext";
 
 const links = [
   { href: "/feed", label: "Feed" },
+  { href: "/requests", label: "Requests" },
   { href: "/members", label: "Members" },
   { href: "/create", label: "Post Activity" },
 ];
