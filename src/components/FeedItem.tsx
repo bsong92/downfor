@@ -89,7 +89,11 @@ export function FeedItem({ activity }: { activity: ActivityWithAttendees }) {
           {/* Weather for outdoor activities */}
           {activity.is_outdoor && activity.weather_data && (
             <div className="mb-3">
-              <WeatherDisplay weather={activity.weather_data} variant="compact" />
+              <WeatherDisplay
+                weather={activity.weather_data}
+                variant="compact"
+                category={activity.category}
+              />
             </div>
           )}
           {activity.is_outdoor && !activity.weather_data && (
