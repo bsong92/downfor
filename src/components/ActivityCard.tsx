@@ -47,27 +47,28 @@ export function ActivityCard({ activity }: { activity: ActivityWithAttendees }) 
               {c.label}
             </span>
           </div>
-          <div className="flex items-center gap-2">
-            {hasChat && (
-              <Link
-                href={`/activity/${activity.id}#activity-chat`}
-                className="inline-flex items-center justify-center rounded-full bg-indigo-50 px-2.5 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 transition-colors"
-                aria-label="Open activity chat"
-              >
-                💬
-              </Link>
-            )}
-            <span className="text-xs text-gray-400">
-              {getDateLabelInTimeZone(activity.activity_date, timeZone)}
-            </span>
-          </div>
+          <span className="text-xs text-gray-400">
+            {getDateLabelInTimeZone(activity.activity_date, timeZone)}
+          </span>
         </div>
 
         {/* Middle: Title + description */}
         <div className="px-5 py-4 flex-1 flex flex-col">
-          <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-indigo-600 transition-colors leading-snug line-clamp-2">
-            {activity.title}
-          </h3>
+          <div className="flex items-start justify-between gap-3 mb-2">
+            <h3 className="text-lg font-bold text-gray-900 group-hover:text-indigo-600 transition-colors leading-snug line-clamp-2">
+              {activity.title}
+            </h3>
+            {hasChat && (
+              <span
+                className="shrink-0 inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2.5 py-1.5 text-xs font-semibold text-indigo-700"
+                title="Chat available"
+                aria-label="Chat available"
+              >
+                <span>💬</span>
+                <span>Chat</span>
+              </span>
+            )}
+          </div>
 
           {activity.description && (
             <p className="text-sm text-gray-600 mb-4 line-clamp-2 flex-1">{activity.description}</p>

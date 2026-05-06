@@ -60,24 +60,29 @@ export function FeedItem({ activity }: { activity: ActivityWithAttendees }) {
             <div className="bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs font-semibold text-gray-900 shadow-sm">
               {c.emoji} {c.label}
             </div>
-            {hasChat && (
-              <Link
-                href={`/activity/${activity.id}#activity-chat`}
-                className="bg-white/90 backdrop-blur-sm rounded-full px-2.5 py-1.5 text-xs font-semibold text-indigo-700 shadow-sm hover:bg-white transition-colors"
-                aria-label="Open activity chat"
-              >
-                💬
-              </Link>
-            )}
           </div>
         </div>
 
         {/* Body */}
         <div className="flex-1 p-5 md:p-6 space-y-4 flex flex-col">
+          <div className="flex items-start justify-between gap-3">
+            <div className="space-y-2 min-w-0">
+              <h3 className="font-display text-[1.45rem] md:text-[1.7rem] leading-tight text-gray-950 group-hover:text-indigo-700 transition-colors">
+                {activity.title}
+              </h3>
+            </div>
+            {hasChat && (
+              <span
+                className="shrink-0 inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2.5 py-1.5 text-xs font-semibold text-indigo-700"
+                title="Chat available"
+                aria-label="Chat available"
+              >
+                <span>💬</span>
+                <span>Chat</span>
+              </span>
+            )}
+          </div>
           <div className="space-y-2">
-            <h3 className="font-display text-[1.45rem] md:text-[1.7rem] leading-tight text-gray-950 group-hover:text-indigo-700 transition-colors">
-              {activity.title}
-            </h3>
             {descriptionPreview && (
               <p className="text-[0.95rem] leading-6 text-gray-600 line-clamp-2">
                 {descriptionPreview}
