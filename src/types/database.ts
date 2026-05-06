@@ -11,6 +11,15 @@ export type Profile = {
   updated_at: string;
 };
 
+export type WeatherData = {
+  temperature: number;
+  condition: string;
+  humidity: number;
+  windSpeed: number;
+  precipitation: number;
+  icon: string;
+};
+
 export type Activity = {
   id: string;
   poster_id: string;
@@ -22,6 +31,9 @@ export type Activity = {
   spots_available: number;
   status: "active" | "cancelled" | "full";
   image_url: string | null;
+  is_outdoor: boolean;
+  weather_data: WeatherData | null;
+  weather_last_updated: string | null;
   created_at: string;
   updated_at: string;
 };
