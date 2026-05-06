@@ -87,6 +87,11 @@ export function FeedItem({ activity }: { activity: ActivityWithAttendees }) {
               <WeatherDisplay weather={activity.weather_data} variant="compact" />
             </div>
           )}
+          {activity.is_outdoor && !activity.weather_data && (
+            <div className="mb-3 text-xs text-gray-500">
+              Weather pending
+            </div>
+          )}
 
           {/* Row 2: Attendees and Spots */}
           <div className="flex items-center justify-between">

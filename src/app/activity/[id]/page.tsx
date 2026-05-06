@@ -157,6 +157,11 @@ export default async function ActivityDetailPage({
         {activity.is_outdoor && activity.weather_data && (
           <WeatherDisplay weather={activity.weather_data} variant="full" />
         )}
+        {activity.is_outdoor && !activity.weather_data && (
+          <div className="mb-6 text-sm text-gray-500">
+            Weather pending for this outdoor activity.
+          </div>
+        )}
 
         {/* Who's going section */}
         {approvedRequests.length > 0 && (

@@ -54,22 +54,53 @@ const WEATHER_DESCRIPTIONS: Record<number, string> = {
   99: "Thunderstorm with Hail",
 };
 
+function buildLocationCandidates(location: string): string[] {
+  const trimmed = location.trim();
+  const candidates = [
+    trimmed,
+    `${trimmed}, Chicago, IL`,
+    `${trimmed}, Chicago`,
+    "Chicago, IL",
+  ];
+
+  return Array.from(
+    new Set(candidates.map((candidate) => candidate.trim()).filter(Boolean))
+  );
+}
+
+async function geocodeLocation(location: string) {
+  for (const candidate of buildLocationCandidates(location)) {
+    const geoResponse = await fetch(
+      `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(candidate)}&count=1&language=en&format=json`
+    );
+
+    if (!geoResponse.ok) continue;
+
+    const geoData = await geoResponse.json();
+    const result = geoData.results?.[0];
+
+    if (result) {
+      return {
+        latitude: result.latitude as number,
+        longitude: result.longitude as number,
+        matchedLocation: candidate,
+      };
+    }
+  }
+
+  return null;
+}
+
 export async function getWeatherForLocation(
   location: string,
   date: string
 ): Promise<WeatherData | null> {
   try {
-    // Geocode the location
-    const geoResponse = await fetch(
-      `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(location)}&count=1&language=en&format=json`
-    );
+    // Geocode the location with a Chicago fallback for venue-style inputs.
+    const geo = await geocodeLocation(location);
+    if (!geo) return null;
 
-    if (!geoResponse.ok) return null;
-
-    const geoData = await geoResponse.json();
-    if (!geoData.results || geoData.results.length === 0) return null;
-
-    const { latitude, longitude } = geoData.results[0];
+    const { latitude, longitude } = geo;
 
     // Get weather forecast
     const weatherResponse = await fetch(
