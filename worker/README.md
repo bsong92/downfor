@@ -1,42 +1,44 @@
 # Downfor Weather Worker
 
-A Node.js worker that runs on Railway and periodically refreshes weather data for upcoming outdoor activities.
+A lightweight Node.js worker that runs on Railway and periodically refreshes weather data for upcoming outdoor activities.
 
 ## What it does
 
-- Polls the database every hour
-- Fetches upcoming outdoor activities without weather data (within 14 days)
-- Calls Open-Meteo API to get weather forecasts
-- Updates Supabase with weather data
+- Runs on a schedule (every 1 hour by default)
+- Calls the `/api/cron/weather-refresh` endpoint on your Vercel app
+- The endpoint fetches upcoming outdoor activities and updates weather data
 - Logs all activity for monitoring
 
 ## Environment Variables
 
-- `SUPABASE_URL` — Your Supabase project URL
-- `SUPABASE_SERVICE_ROLE_KEY` — Supabase service role key (from Settings → API)
+- `DOWNFOR_API_URL` — Your Vercel app URL (e.g., `https://downfor.vercel.app`)
+- `CRON_SECRET` — Must match the `CRON_SECRET` in your Vercel environment
 
 ## Local Development
 
 ```bash
 npm install
-npm run dev
+DOWNFOR_API_URL=http://localhost:3000 CRON_SECRET=supersecrettoken123 npm run dev
 ```
 
 ## Deploy to Railway
 
-1. Push this folder to GitHub
+1. Push this folder to GitHub (already done)
 2. Go to Railway.app → New Project → Deploy from GitHub
-3. Select this repository and set Root Directory to `worker/`
+3. Select `downfor` repository and set **Root Directory** to `worker/`
 4. Add environment variables:
-   - `SUPABASE_URL`
-   - `SUPABASE_SERVICE_ROLE_KEY`
+   - `DOWNFOR_API_URL` = `https://downfor.vercel.app` (your Vercel domain)
+   - `CRON_SECRET` = `supersecrettoken123` (same as Vercel's CRON_SECRET)
 5. Deploy
+
+The worker will start polling your weather endpoint every hour automatically.
 
 ## How it works
 
-The worker runs continuously and refreshes weather every hour for:
-- Activities marked as `is_outdoor = true`
-- With `activity_date` in the next 14 days
-- That don't have `weather_data` yet
+The worker makes HTTP requests to your Vercel API endpoint every hour. The endpoint:
+- Fetches upcoming outdoor activities without weather data
+- Calls Open-Meteo API for weather forecasts
+- Updates Supabase with the weather data
+- Returns a summary of updates
 
-Once weather is fetched and stored, it won't be re-fetched (to save API calls). You can manually delete `weather_data` in Supabase if you want to force a refresh.
+This approach allows you to run weather refreshes on the free Hobby tier without Vercel's cron limitations.

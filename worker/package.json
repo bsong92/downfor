@@ -11,9 +11,7 @@
   "author": "",
   "license": "ISC",
   "description": "Weather refresh worker for Downfor activities",
-  "dependencies": {
-    "@supabase/supabase-js": "^2.103.3"
-  },
+  "dependencies": {},
   "engines": {
     "node": ">=20.0.0"
   }
