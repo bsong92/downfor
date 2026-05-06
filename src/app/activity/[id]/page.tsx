@@ -3,7 +3,12 @@ import { getCategoryGradient, getCategoryConfig } from "@/components/CategoryBad
 import { WeatherDisplay } from "@/components/WeatherDisplay";
 import { createServiceClient } from "@/lib/supabase-server";
 import { getRequiredProfile } from "@/lib/current-user";
-import { createActivityMessage, createJoinRequest, updateRequestStatus } from "@/app/actions";
+import {
+  createActivityMessage,
+  createJoinRequest,
+  deleteActivityMessage,
+  updateRequestStatus,
+} from "@/app/actions";
 import { getStoredLocationLabel, getStoredLocationTimezone } from "@/lib/location";
 import { formatInTimeZone } from "@/lib/date-time";
 import type { ActivityMessageWithSender, ActivityWithPoster, JoinRequestWithRequester } from "@/types/app";
@@ -334,6 +339,8 @@ export default async function ActivityDetailPage({
                               >
                                 {message.sender.name}
                               </p>
+                            </div>
+                            <div className="ml-auto flex items-center gap-2">
                               <p
                                 className={`text-[11px] ${
                                   isMine ? "text-indigo-100/80" : "text-gray-400"
@@ -344,6 +351,19 @@ export default async function ActivityDetailPage({
                                   minute: "2-digit",
                                 })}
                               </p>
+                              {isMine && (
+                                <form
+                                  action={deleteActivityMessage.bind(null, message.id, id)}
+                                >
+                                  <button
+                                    type="submit"
+                                    className="rounded-full border border-white/30 px-2 py-1 text-[11px] font-semibold hover:bg-white/10 transition-colors"
+                                    aria-label="Delete message"
+                                  >
+                                    Delete
+                                  </button>
+                                </form>
+                              )}
                             </div>
                           </div>
                           <p className="text-sm leading-6 whitespace-pre-wrap">{message.body}</p>

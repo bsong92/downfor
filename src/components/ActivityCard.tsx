@@ -31,6 +31,7 @@ export function ActivityCard({ activity }: { activity: ActivityWithAttendees }) 
     .map((req) => req.requester);
 
   const totalAttendees = activity.join_requests.filter((req) => req.status === "approved").length;
+  const hasChat = totalAttendees > 0;
 
   // Determine spot color (red if low)
   const spotsColor = activity.spots_available <= 2 ? "text-red-600 font-semibold" : "text-gray-700";
@@ -39,16 +40,27 @@ export function ActivityCard({ activity }: { activity: ActivityWithAttendees }) 
     <Link href={`/activity/${activity.id}`} className="block group">
       <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden hover:shadow-lg hover:border-indigo-300 transition-all duration-300 h-full flex flex-col">
         {/* Top: Category pill + date */}
-        <div className="px-5 pt-4 pb-3 flex items-center justify-between">
+        <div className="px-5 pt-4 pb-3 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <span className="text-lg">{c.emoji}</span>
             <span className="text-xs font-semibold text-indigo-700 uppercase tracking-wide bg-indigo-50 px-2.5 py-1 rounded-full">
               {c.label}
             </span>
           </div>
-          <span className="text-xs text-gray-400">
-            {getDateLabelInTimeZone(activity.activity_date, timeZone)}
-          </span>
+          <div className="flex items-center gap-2">
+            {hasChat && (
+              <Link
+                href={`/activity/${activity.id}#activity-chat`}
+                className="inline-flex items-center justify-center rounded-full bg-indigo-50 px-2.5 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 transition-colors"
+                aria-label="Open activity chat"
+              >
+                💬
+              </Link>
+            )}
+            <span className="text-xs text-gray-400">
+              {getDateLabelInTimeZone(activity.activity_date, timeZone)}
+            </span>
+          </div>
         </div>
 
         {/* Middle: Title + description */}

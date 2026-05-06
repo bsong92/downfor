@@ -139,6 +139,26 @@ export async function createActivityMessage(activityId: string, formData: FormDa
   revalidatePath("/feed");
 }
 
+export async function deleteActivityMessage(messageId: string, activityId: string): Promise<void> {
+  const supabase = createServiceClient();
+  const user = await getRequiredProfile();
+
+  const { data: message } = await supabase
+    .from("activity_messages")
+    .select("sender_id")
+    .eq("id", messageId)
+    .maybeSingle();
+
+  if (!message || message.sender_id !== user.id) {
+    return;
+  }
+
+  await supabase.from("activity_messages").delete().eq("id", messageId);
+
+  revalidatePath(`/activity/${activityId}`);
+  revalidatePath("/feed");
+}
+
 // Used as a form action (must return void)
 export async function updateRequestStatus(
   requestId: string,

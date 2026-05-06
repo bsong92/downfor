@@ -37,6 +37,7 @@ export function FeedItem({ activity }: { activity: ActivityWithAttendees }) {
   const totalAttendees = activity.join_requests.filter(
     (req) => req.status === "approved"
   ).length;
+  const hasChat = totalAttendees > 0;
 
   return (
     <Link href={`/activity/${activity.id}`} className="block group h-full">
@@ -59,6 +60,15 @@ export function FeedItem({ activity }: { activity: ActivityWithAttendees }) {
             <div className="bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs font-semibold text-gray-900 shadow-sm">
               {c.emoji} {c.label}
             </div>
+            {hasChat && (
+              <Link
+                href={`/activity/${activity.id}#activity-chat`}
+                className="bg-white/90 backdrop-blur-sm rounded-full px-2.5 py-1.5 text-xs font-semibold text-indigo-700 shadow-sm hover:bg-white transition-colors"
+                aria-label="Open activity chat"
+              >
+                💬
+              </Link>
+            )}
           </div>
         </div>
 
