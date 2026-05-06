@@ -52,6 +52,8 @@ export type ActivityMessage = {
   activity_id: string;
   sender_id: string;
   body: string;
+  attachment_url: string | null;
+  attachment_path: string | null;
   created_at: string;
   updated_at: string;
 };

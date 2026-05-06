@@ -14,6 +14,25 @@ async function fileToBuffer(file: File): Promise<Buffer> {
   return Buffer.from(arrayBuffer);
 }
 
+async function uploadChatAttachment(activityId: string, file: File) {
+  const supabase = createServiceClient();
+  const user = await getRequiredProfile();
+  const fileBuffer = await fileToBuffer(file);
+  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+  const path = `chat-attachments/${activityId}/${user.id}-${Date.now()}-${safeName}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from("profile-photos")
+    .upload(path, fileBuffer, { contentType: file.type });
+
+  if (uploadError) {
+    throw new Error(uploadError.message);
+  }
+
+  const { data } = supabase.storage.from("profile-photos").getPublicUrl(path);
+  return { url: data.publicUrl, path };
+}
+
 export async function createActivity(data: {
   category: string;
   title: string;
@@ -106,8 +125,14 @@ export async function createActivityMessage(activityId: string, formData: FormDa
   const supabase = createServiceClient();
   const user = await getRequiredProfile();
   const body = String(formData.get("message") ?? "").trim();
+  const attachment = formData.get("attachment");
+  const attachmentFile = attachment instanceof File && attachment.size > 0 ? attachment : null;
 
-  if (!body) return;
+  if (!body && !attachmentFile) return;
+
+  if (attachmentFile && !attachmentFile.type.startsWith("image/")) {
+    return;
+  }
 
   const { data: activity } = await supabase
     .from("activities")
@@ -129,10 +154,21 @@ export async function createActivityMessage(activityId: string, formData: FormDa
 
   if (!canPostMessage) return;
 
+  let attachmentUrl: string | null = null;
+  let attachmentPath: string | null = null;
+
+  if (attachmentFile) {
+    const uploaded = await uploadChatAttachment(activityId, attachmentFile);
+    attachmentUrl = uploaded.url;
+    attachmentPath = uploaded.path;
+  }
+
   await supabase.from("activity_messages").insert({
     activity_id: activityId,
     sender_id: user.id,
     body,
+    attachment_url: attachmentUrl,
+    attachment_path: attachmentPath,
   });
 
   revalidatePath(`/activity/${activityId}`);
@@ -145,12 +181,16 @@ export async function deleteActivityMessage(messageId: string, activityId: strin
 
   const { data: message } = await supabase
     .from("activity_messages")
-    .select("sender_id")
+    .select("sender_id, attachment_path")
     .eq("id", messageId)
     .maybeSingle();
 
   if (!message || message.sender_id !== user.id) {
     return;
+  }
+
+  if (message.attachment_path) {
+    await supabase.storage.from("profile-photos").remove([message.attachment_path]);
   }
 
   await supabase.from("activity_messages").delete().eq("id", messageId);

@@ -366,6 +366,14 @@ export default async function ActivityDetailPage({
                               )}
                             </div>
                           </div>
+                          {message.attachment_url && (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={message.attachment_url}
+                              alt="Chat attachment"
+                              className="mb-3 w-full max-w-[18rem] rounded-2xl border border-black/5 object-cover"
+                            />
+                          )}
                           <p className="text-sm leading-6 whitespace-pre-wrap">{message.body}</p>
                         </div>
                       </div>
@@ -374,13 +382,31 @@ export default async function ActivityDetailPage({
                 </div>
               )}
 
-              <form action={createActivityMessage.bind(null, id)} className="mt-5 space-y-3">
+              <form
+                action={createActivityMessage.bind(null, id)}
+                encType="multipart/form-data"
+                className="mt-5 space-y-3"
+              >
                 <textarea
                   name="message"
                   rows={3}
                   placeholder={isMyActivity ? "Message the group..." : "Say hi to the host and group..."}
                   className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-4 focus:ring-indigo-100"
                 />
+                <div className="flex items-center gap-3">
+                  <label className="inline-flex cursor-pointer items-center rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:border-indigo-300 hover:bg-indigo-50 transition-colors">
+                    <span>Attach photo</span>
+                    <input
+                      type="file"
+                      name="attachment"
+                      accept="image/*"
+                      className="hidden"
+                    />
+                  </label>
+                  <p className="text-xs text-gray-400">
+                    Photos only, max 5 MB recommended.
+                  </p>
+                </div>
                 <div className="flex items-center justify-end">
                   <button
                     type="submit"
