@@ -1,0 +1,20 @@
+{
+  "name": "downfor-worker",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "Weather refresh worker for Downfor activities",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.103.3"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
