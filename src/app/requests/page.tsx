@@ -109,15 +109,14 @@ export default async function RequestsPage({
     activeStatus === "all"
       ? sentRequests
       : sentRequests.filter((request) => request.status === activeStatus);
-  const visibleHostedActivities = hostedActivities
-    .map((activity) => ({
-      ...activity,
-      join_requests:
-        activeStatus === "all"
-          ? activity.join_requests
-          : activity.join_requests.filter((request) => request.status === activeStatus),
-    }))
-    .filter((activity) => activity.join_requests.length > 0);
+  const visibleIncomingRequests = hostedActivities.reduce(
+    (count, activity) =>
+      count +
+      activity.join_requests.filter((request) =>
+        activeStatus === "all" ? true : request.status === activeStatus
+      ).length,
+    0
+  );
 
   const sentPending = sentRequests.filter((request) => request.status === "pending").length;
   const sentApproved = sentRequests.filter((request) => request.status === "approved").length;
@@ -355,41 +354,26 @@ export default async function RequestsPage({
               <div className="text-sm text-gray-500">
                 {activeStatus === "all"
                   ? `${hostedActivities.length} activities`
-                  : `${visibleHostedActivities.length} ${getFilterLabel(activeStatus).toLowerCase()} activities`}
+                  : `${visibleIncomingRequests} ${getFilterLabel(activeStatus).toLowerCase()} requests`}
               </div>
             </div>
 
-            {visibleHostedActivities.length === 0 ? (
+            {hostedActivities.length === 0 ? (
               <div className="rounded-[24px] border border-dashed border-gray-200 bg-gray-50 p-8 text-center">
-                <p className="font-semibold text-gray-900 mb-2">
-                  {activeStatus === "all"
-                    ? "No hosted activities yet"
-                    : `No ${getFilterLabel(activeStatus).toLowerCase()} requests`}
-                </p>
+                <p className="font-semibold text-gray-900 mb-2">No hosted activities yet</p>
                 <p className="text-sm text-gray-500 mb-4">
-                  {activeStatus === "all"
-                    ? "Post an activity to start receiving requests here."
-                    : "Try another status filter to see requests on your activities."}
+                  Post an activity to start receiving requests here.
                 </p>
-                {activeStatus === "all" ? (
-                  <Link
-                    href="/create"
-                    className="inline-flex items-center justify-center rounded-full bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors"
-                  >
-                    Post activity
-                  </Link>
-                ) : (
-                  <Link
-                    href="/requests"
-                    className="inline-flex items-center justify-center rounded-full bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors"
-                  >
-                    Show all
-                  </Link>
-                )}
+                <Link
+                  href="/create"
+                  className="inline-flex items-center justify-center rounded-full bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors"
+                >
+                  Post activity
+                </Link>
               </div>
             ) : (
               <div className="space-y-4">
-                {visibleHostedActivities.map((activity) => {
+                {hostedActivities.map((activity) => {
                   const c = getCategoryConfig(activity.category);
                   const gradientClass = getCategoryGradient(activity.category);
                   const timeZone = getStoredLocationTimezone(activity.location);
@@ -401,9 +385,12 @@ export default async function RequestsPage({
                   const approvedRequests = activity.join_requests.filter(
                     (request) => request.status === "approved"
                   );
-                  const resolvedRequests = activity.join_requests.filter(
-                    (request) => request.status !== "pending"
-                  );
+                  const filteredRequests =
+                    activeStatus === "all"
+                      ? activity.join_requests
+                      : activity.join_requests.filter(
+                          (request) => request.status === activeStatus
+                        );
 
                   return (
                     <article
@@ -457,7 +444,7 @@ export default async function RequestsPage({
                           </div>
                         ) : (
                           <div className="space-y-3">
-                            {pendingRequests.length > 0 && (
+                            {activeStatus === "all" && pendingRequests.length > 0 && (
                               <div className="flex items-center gap-2">
                                 <span className="rounded-full bg-indigo-100 px-3 py-1 text-xs font-semibold text-indigo-700">
                                   {pendingRequests.length} pending
@@ -470,72 +457,99 @@ export default async function RequestsPage({
                               </div>
                             )}
 
-                            <div className="space-y-3">
-                              {activity.join_requests.map((request) => (
-                                <div
-                                  key={request.id}
-                                  className={`rounded-2xl border p-4 ${
-                                    request.status === "pending"
-                                      ? "border-indigo-100 bg-indigo-50/40"
-                                      : "border-gray-200 bg-gray-50"
-                                  }`}
-                                >
-                                  <div className="flex items-start justify-between gap-3">
-                                    <div className="flex items-center gap-3 min-w-0">
-                                      <div className="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center overflow-hidden shrink-0">
-                                        {request.requester.photo_url ? (
-                                          // eslint-disable-next-line @next/next/no-img-element
-                                          <img
-                                            src={request.requester.photo_url}
-                                            alt={request.requester.name}
-                                            className="w-full h-full object-cover"
-                                          />
-                                        ) : (
-                                          <span className="text-sm font-semibold text-gray-600">
-                                            {request.requester.name.charAt(0)}
-                                          </span>
-                                        )}
+                            {activeStatus !== "all" && filteredRequests.length === 0 ? (
+                              <div className="rounded-2xl border border-dashed border-gray-200 bg-gray-50 px-4 py-5">
+                                <p className="text-sm font-medium text-gray-900 mb-1">
+                                  No {getFilterLabel(activeStatus).toLowerCase()} requests
+                                </p>
+                                <p className="text-sm text-gray-500">
+                                  This activity does not have any requests with that status yet.
+                                </p>
+                              </div>
+                            ) : (
+                              <div className="space-y-3">
+                                {filteredRequests.map((request) => (
+                                  <div
+                                    key={request.id}
+                                    className={`rounded-2xl border p-4 ${
+                                      request.status === "pending"
+                                        ? "border-indigo-100 bg-indigo-50/40"
+                                        : "border-gray-200 bg-gray-50"
+                                    }`}
+                                  >
+                                    <div className="flex items-start justify-between gap-3">
+                                      <div className="flex items-center gap-3 min-w-0">
+                                        <div className="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center overflow-hidden shrink-0">
+                                          {request.requester.photo_url ? (
+                                            // eslint-disable-next-line @next/next/no-img-element
+                                            <img
+                                              src={request.requester.photo_url}
+                                              alt={request.requester.name}
+                                              className="w-full h-full object-cover"
+                                            />
+                                          ) : (
+                                            <span className="text-sm font-semibold text-gray-600">
+                                              {request.requester.name.charAt(0)}
+                                            </span>
+                                          )}
+                                        </div>
+                                        <div className="min-w-0">
+                                          <p className="text-sm font-semibold text-gray-950 truncate">
+                                            {request.requester.name}
+                                          </p>
+                                        </div>
                                       </div>
-                                      <div className="min-w-0">
-                                        <p className="text-sm font-semibold text-gray-950 truncate">
-                                          {request.requester.name}
-                                        </p>
-                                      </div>
+                                      <span
+                                        className={`rounded-full px-2.5 py-1 text-xs font-semibold ${statusTone(request.status)}`}
+                                      >
+                                        {request.status}
+                                      </span>
                                     </div>
-                                    <span
-                                      className={`rounded-full px-2.5 py-1 text-xs font-semibold ${statusTone(request.status)}`}
-                                    >
-                                      {request.status}
-                                    </span>
-                                  </div>
 
-                                  <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                                    <p className="text-sm text-gray-600">
-                                      {request.status === "pending"
-                                        ? "Waiting on your decision"
-                                        : request.status === "approved"
-                                          ? "This person is approved to join"
-                                          : "This request has been declined"}
-                                    </p>
+                                    <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                      <p className="text-sm text-gray-600">
+                                        {request.status === "pending"
+                                          ? "Waiting on your decision"
+                                          : request.status === "approved"
+                                            ? "This person is approved to join"
+                                            : "This request has been declined"}
+                                      </p>
 
-                                    <div className="flex items-center gap-2">
-                                      {request.status === "pending" ? (
-                                        <>
-                                          <form
-                                            action={updateRequestStatus.bind(
-                                              null,
-                                              request.id,
-                                              "approved",
-                                              activity.id
-                                            )}
-                                          >
-                                            <button
-                                              type="submit"
-                                              className="rounded-lg bg-emerald-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-600 transition-colors"
+                                      <div className="flex items-center gap-2">
+                                        {request.status === "pending" ? (
+                                          <>
+                                            <form
+                                              action={updateRequestStatus.bind(
+                                                null,
+                                                request.id,
+                                                "approved",
+                                                activity.id
+                                              )}
                                             >
-                                              Approve
-                                            </button>
-                                          </form>
+                                              <button
+                                                type="submit"
+                                                className="rounded-lg bg-emerald-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-600 transition-colors"
+                                              >
+                                                Approve
+                                              </button>
+                                            </form>
+                                            <form
+                                              action={updateRequestStatus.bind(
+                                                null,
+                                                request.id,
+                                                "declined",
+                                                activity.id
+                                              )}
+                                            >
+                                              <button
+                                                type="submit"
+                                                className="rounded-lg bg-gray-100 px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-200 transition-colors"
+                                              >
+                                                Decline
+                                              </button>
+                                            </form>
+                                          </>
+                                        ) : request.status === "approved" ? (
                                           <form
                                             action={updateRequestStatus.bind(
                                               null,
@@ -548,32 +562,16 @@ export default async function RequestsPage({
                                               type="submit"
                                               className="rounded-lg bg-gray-100 px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-200 transition-colors"
                                             >
-                                              Decline
+                                              Revoke
                                             </button>
                                           </form>
-                                        </>
-                                      ) : request.status === "approved" ? (
-                                        <form
-                                          action={updateRequestStatus.bind(
-                                            null,
-                                            request.id,
-                                            "declined",
-                                            activity.id
-                                          )}
-                                        >
-                                          <button
-                                            type="submit"
-                                            className="rounded-lg bg-gray-100 px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-200 transition-colors"
-                                          >
-                                            Revoke
-                                          </button>
-                                        </form>
-                                      ) : null}
+                                        ) : null}
+                                      </div>
                                     </div>
                                   </div>
-                                </div>
-                              ))}
-                            </div>
+                                ))}
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>
