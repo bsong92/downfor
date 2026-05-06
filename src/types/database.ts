@@ -47,6 +47,15 @@ export type JoinRequest = {
   updated_at: string;
 };
 
+export type ActivityMessage = {
+  id: string;
+  activity_id: string;
+  sender_id: string;
+  body: string;
+  created_at: string;
+  updated_at: string;
+};
+
 export const CATEGORIES = [
   "fitness",
   "outdoors",

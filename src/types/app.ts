@@ -1,4 +1,4 @@
-import type { Activity, JoinRequest, Profile } from "./database";
+import type { Activity, ActivityMessage, JoinRequest, Profile } from "./database";
 
 export type ActivityWithPoster = Activity & { poster: Profile };
 export type JoinRequestWithRequester = JoinRequest & { requester: Profile };
@@ -9,4 +9,8 @@ export type JoinRequestForAttendees = Pick<JoinRequest, "id" | "status"> & {
 };
 export type ActivityWithAttendees = ActivityWithPoster & {
   join_requests: JoinRequestForAttendees[];
+};
+
+export type ActivityMessageWithSender = ActivityMessage & {
+  sender: AttendeePreview;
 };

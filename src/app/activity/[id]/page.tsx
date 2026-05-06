@@ -1,12 +1,12 @@
 import { Navbar } from "@/components/Navbar";
-import { CategoryBadge, getCategoryGradient, getCategoryConfig } from "@/components/CategoryBadge";
+import { getCategoryGradient, getCategoryConfig } from "@/components/CategoryBadge";
 import { WeatherDisplay } from "@/components/WeatherDisplay";
 import { createServiceClient } from "@/lib/supabase-server";
 import { getRequiredProfile } from "@/lib/current-user";
-import { createJoinRequest, updateRequestStatus } from "@/app/actions";
+import { createActivityMessage, createJoinRequest, updateRequestStatus } from "@/app/actions";
 import { getStoredLocationLabel, getStoredLocationTimezone } from "@/lib/location";
 import { formatInTimeZone } from "@/lib/date-time";
-import type { ActivityWithPoster, JoinRequestWithRequester } from "@/types/app";
+import type { ActivityMessageWithSender, ActivityWithPoster, JoinRequestWithRequester } from "@/types/app";
 import Link from "next/link";
 import { ActivityEditClient } from "@/app/activity/ActivityEditClient";
 
@@ -47,12 +47,20 @@ export default async function ActivityDetailPage({
     .eq("activity_id", id)
     .order("created_at", { ascending: true });
 
+  const { data: messagesData } = await supabase
+    .from("activity_messages")
+    .select("*, sender:profiles!sender_id(id, name, photo_url)")
+    .eq("activity_id", id)
+    .order("created_at", { ascending: true });
+
   const requests = (requestsData ?? []) as JoinRequestWithRequester[];
+  const messages = (messagesData ?? []) as ActivityMessageWithSender[];
   const isMyActivity = activity.poster_id === currentUser.id;
   const myRequest = requests.find((r) => r.requester_id === currentUser.id);
   const pendingRequests = requests.filter((r) => r.status === "pending");
   const resolvedRequests = requests.filter((r) => r.status !== "pending");
   const approvedRequests = requests.filter((r) => r.status === "approved");
+  const canChat = isMyActivity || myRequest?.status === "approved";
 
   const c = getCategoryConfig(activity.category);
   const gradientClass = getCategoryGradient(activity.category);
@@ -241,6 +249,122 @@ export default async function ActivityDetailPage({
             )}
           </div>
         )}
+
+        <section className="mb-6 rounded-[28px] border border-gray-200/80 bg-white/90 backdrop-blur p-5 md:p-6 shadow-[0_18px_60px_rgba(15,23,42,0.05)]">
+          <div className="flex items-end justify-between gap-4 mb-5">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-indigo-600 mb-2">
+                Activity chat
+              </p>
+              <h2 className="font-display text-2xl md:text-3xl font-semibold text-gray-950">
+                One shared thread
+              </h2>
+            </div>
+            <div className="text-sm text-gray-500">
+              {approvedRequests.length} approved
+            </div>
+          </div>
+
+          {canChat ? (
+            <>
+              {messages.length === 0 ? (
+                <div className="rounded-[24px] border border-dashed border-gray-200 bg-gray-50 p-6 text-center">
+                  <p className="font-semibold text-gray-900 mb-2">No messages yet</p>
+                  <p className="text-sm text-gray-500">
+                    {isMyActivity
+                      ? "Welcome the group and start the conversation here."
+                      : "Be the first to say hi once you’re approved."}
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3 max-h-[26rem] overflow-y-auto pr-1">
+                  {messages.map((message) => {
+                    const isMine = message.sender_id === currentUser.id;
+                    return (
+                      <div
+                        key={message.id}
+                        className={`flex ${isMine ? "justify-end" : "justify-start"}`}
+                      >
+                        <div
+                          className={`max-w-[78%] rounded-3xl border px-4 py-3 shadow-sm ${
+                            isMine
+                              ? "border-indigo-200 bg-indigo-600 text-white"
+                              : "border-gray-200 bg-gray-50 text-gray-900"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 mb-2">
+                            <div className="w-7 h-7 rounded-full overflow-hidden bg-white/80 flex items-center justify-center shrink-0">
+                              {message.sender.photo_url ? (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img
+                                  src={message.sender.photo_url}
+                                  alt={message.sender.name}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <span
+                                  className={`text-xs font-semibold ${
+                                    isMine ? "text-indigo-700" : "text-gray-600"
+                                  }`}
+                                >
+                                  {message.sender.name.charAt(0)}
+                                </span>
+                              )}
+                            </div>
+                            <div className="min-w-0">
+                              <p
+                                className={`text-xs font-semibold truncate ${
+                                  isMine ? "text-indigo-50" : "text-gray-700"
+                                }`}
+                              >
+                                {message.sender.name}
+                              </p>
+                              <p
+                                className={`text-[11px] ${
+                                  isMine ? "text-indigo-100/80" : "text-gray-400"
+                                }`}
+                              >
+                                {formatInTimeZone(message.created_at, timeZone, {
+                                  hour: "numeric",
+                                  minute: "2-digit",
+                                })}
+                              </p>
+                            </div>
+                          </div>
+                          <p className="text-sm leading-6 whitespace-pre-wrap">{message.body}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              <form action={createActivityMessage.bind(null, id)} className="mt-5 space-y-3">
+                <textarea
+                  name="message"
+                  rows={3}
+                  placeholder={isMyActivity ? "Message the group..." : "Say hi to the host and group..."}
+                  className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-4 focus:ring-indigo-100"
+                />
+                <div className="flex items-center justify-end">
+                  <button
+                    type="submit"
+                    className="rounded-full bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors"
+                  >
+                    Send message
+                  </button>
+                </div>
+              </form>
+            </>
+          ) : (
+            <div className="rounded-[24px] border border-dashed border-gray-200 bg-gray-50 p-6 text-center">
+              <p className="font-semibold text-gray-900 mb-2">Chat unlocks after approval</p>
+              <p className="text-sm text-gray-500">
+                Once your request is approved, you’ll join the shared activity thread with the host and other approved attendees.
+              </p>
+            </div>
+          )}
+        </section>
 
         {/* Approval queue (poster only) */}
         {isMyActivity && (

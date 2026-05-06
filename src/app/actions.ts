@@ -102,6 +102,43 @@ export async function createJoinRequest(activityId: string): Promise<void> {
   revalidatePath("/requests");
 }
 
+export async function createActivityMessage(activityId: string, formData: FormData): Promise<void> {
+  const supabase = createServiceClient();
+  const user = await getRequiredProfile();
+  const body = String(formData.get("message") ?? "").trim();
+
+  if (!body) return;
+
+  const { data: activity } = await supabase
+    .from("activities")
+    .select("id, poster_id")
+    .eq("id", activityId)
+    .single();
+
+  if (!activity) return;
+
+  const { data: approvedRequest } = await supabase
+    .from("join_requests")
+    .select("status")
+    .eq("activity_id", activityId)
+    .eq("requester_id", user.id)
+    .maybeSingle();
+
+  const canPostMessage =
+    activity.poster_id === user.id || approvedRequest?.status === "approved";
+
+  if (!canPostMessage) return;
+
+  await supabase.from("activity_messages").insert({
+    activity_id: activityId,
+    sender_id: user.id,
+    body,
+  });
+
+  revalidatePath(`/activity/${activityId}`);
+  revalidatePath("/feed");
+}
+
 // Used as a form action (must return void)
 export async function updateRequestStatus(
   requestId: string,
