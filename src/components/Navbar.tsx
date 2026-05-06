@@ -26,12 +26,12 @@ export function Navbar() {
           downfor
         </Link>
 
-        <nav className="flex items-center gap-1">
+        <nav className="flex items-center gap-2 lg:gap-3">
           {links.map((l) => (
             <Link
               key={l.href}
               href={l.href}
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+              className={`px-3.5 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                 pathname === l.href
                   ? "bg-indigo-50 text-indigo-600"
                   : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
@@ -46,7 +46,11 @@ export function Navbar() {
               <Show when="signed-in">
                 <Link
                   href="/profile"
-                  className="ml-2 px-3 py-1.5 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors"
+                  className={`px-3.5 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                    pathname === "/profile"
+                      ? "bg-indigo-50 text-indigo-600"
+                      : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                  }`}
                 >
                   Profile
                 </Link>
@@ -56,14 +60,14 @@ export function Navbar() {
               </Show>
               <Show when="signed-out">
                 <SignInButton mode="redirect">
-                  <button className="ml-2 px-3 py-1.5 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors">
+                  <button className="px-3.5 py-1.5 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors">
                     Sign in
                   </button>
                 </SignInButton>
               </Show>
             </>
           ) : user ? (
-            <Link href="/profile" className="ml-2 flex items-center gap-2">
+            <Link href="/profile" className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center overflow-hidden">
                 {user.photo_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
