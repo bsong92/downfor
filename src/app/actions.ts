@@ -105,7 +105,7 @@ export async function createJoinRequest(activityId: string): Promise<void> {
 // Used as a form action (must return void)
 export async function updateRequestStatus(
   requestId: string,
-  status: "approved" | "declined",
+  status: "approved" | "declined" | "pending",
   activityId: string
 ): Promise<void> {
   const supabase = createServiceClient();
@@ -147,6 +147,18 @@ export async function updateRequestStatus(
       .from("activities")
       .update({
         spots_available: activity.spots_available + 1,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", activityId);
+  } else if (
+    status === "pending" &&
+    currentRequest?.status === "declined" &&
+    activity
+  ) {
+    // Reopening a declined request does not change spot counts.
+    await supabase
+      .from("activities")
+      .update({
         updated_at: new Date().toISOString(),
       })
       .eq("id", activityId);

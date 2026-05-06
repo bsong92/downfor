@@ -543,13 +543,13 @@ export default async function RequestsPage({
                                             >
                                               <button
                                                 type="submit"
-                                                className="rounded-lg bg-gray-100 px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-200 transition-colors"
-                                              >
-                                                Decline
-                                              </button>
-                                            </form>
-                                          </>
-                                        ) : request.status === "approved" ? (
+                                              className="rounded-lg bg-gray-100 px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-200 transition-colors"
+                                            >
+                                              Decline
+                                            </button>
+                                          </form>
+                                        </>
+                                      ) : request.status === "approved" ? (
                                           <form
                                             action={updateRequestStatus.bind(
                                               null,
@@ -565,7 +565,23 @@ export default async function RequestsPage({
                                               Revoke
                                             </button>
                                           </form>
-                                        ) : null}
+                                        ) : (
+                                          <form
+                                            action={updateRequestStatus.bind(
+                                              null,
+                                              request.id,
+                                              "pending",
+                                              activity.id
+                                            )}
+                                          >
+                                            <button
+                                              type="submit"
+                                              className="rounded-lg bg-indigo-100 px-3 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-200 transition-colors"
+                                            >
+                                              Reopen
+                                            </button>
+                                          </form>
+                                        )}
                                       </div>
                                     </div>
                                   </div>
