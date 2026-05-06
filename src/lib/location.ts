@@ -7,6 +7,21 @@ type GeocodingResult = {
   timezone?: string;
 };
 
+type NominatimResult = {
+  lat: string;
+  lon: string;
+  display_name: string;
+  address?: {
+    city?: string;
+    town?: string;
+    village?: string;
+    suburb?: string;
+    county?: string;
+    state?: string;
+    country?: string;
+  };
+};
+
 export type ResolvedLocation = {
   label: string;
   latitude: number;
@@ -39,6 +54,14 @@ function formatResolvedLocation(result: GeocodingResult) {
   return [result.name, result.admin1, result.country]
     .filter(Boolean)
     .join(", ");
+}
+
+function formatNominatimLocation(result: NominatimResult) {
+  return result.display_name;
+}
+
+function getLocationProvider() {
+  return (process.env.LOCATION_AUTOCOMPLETE_PROVIDER ?? "nominatim").toLowerCase();
 }
 
 export function encodeStoredLocation(
@@ -123,6 +146,37 @@ export async function searchLocationSuggestions(
 ): Promise<ResolvedLocation[]> {
   const trimmed = query.trim();
   if (trimmed.length < 2) return [];
+
+  const provider = getLocationProvider();
+
+  if (provider === "nominatim") {
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=jsonv2&q=${encodeURIComponent(trimmed)}&limit=${count}&addressdetails=1`,
+        {
+          headers: {
+            "User-Agent": "downfor/1.0",
+            "Accept-Language": "en",
+          },
+        }
+      );
+
+      if (response.ok) {
+        const data = (await response.json()) as NominatimResult[];
+        const results = data.slice(0, count);
+
+        if (results.length > 0) {
+          return results.map((result) => ({
+            label: formatNominatimLocation(result),
+            latitude: Number(result.lat),
+            longitude: Number(result.lon),
+          }));
+        }
+      }
+    } catch {
+      // Fall through to Open-Meteo.
+    }
+  }
 
   const response = await fetch(
     `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(trimmed)}&count=${count}&language=en&format=json`
