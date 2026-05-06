@@ -15,6 +15,19 @@ type SentRequestRow = JoinRequest & {
   activities: ActivityWithPoster;
 };
 
+type RequestStatusFilter = "all" | "pending" | "approved" | "declined";
+
+const REQUEST_STATUS_FILTERS: Array<{
+  value: RequestStatusFilter;
+  label: string;
+  activeClassName: string;
+}> = [
+  { value: "all", label: "All", activeClassName: "bg-indigo-600 text-white" },
+  { value: "pending", label: "Pending", activeClassName: "bg-amber-100 text-amber-700" },
+  { value: "approved", label: "Approved", activeClassName: "bg-emerald-100 text-emerald-700" },
+  { value: "declined", label: "Declined", activeClassName: "bg-rose-100 text-rose-700" },
+];
+
 function getDescriptionPreview(description: string | null) {
   if (!description) return null;
 
@@ -49,9 +62,29 @@ function smallStatusTone(status: SentRequestRow["status"]) {
   return "bg-indigo-100 text-indigo-700";
 }
 
-export default async function RequestsPage() {
+function getFilterLabel(status: RequestStatusFilter) {
+  return REQUEST_STATUS_FILTERS.find((filter) => filter.value === status)?.label ?? "All";
+}
+
+function getFilterHref(status: RequestStatusFilter) {
+  return status === "all" ? "/requests" : `/requests?status=${status}`;
+}
+
+export default async function RequestsPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ status?: string | string[] }>;
+}) {
   const supabase = createServiceClient();
   const user = await getRequiredProfile();
+  const resolvedSearchParams = await Promise.resolve(searchParams);
+  const rawStatus = Array.isArray(resolvedSearchParams?.status)
+    ? resolvedSearchParams.status[0]
+    : resolvedSearchParams?.status;
+  const activeStatus: RequestStatusFilter =
+    rawStatus === "pending" || rawStatus === "approved" || rawStatus === "declined"
+      ? rawStatus
+      : "all";
 
   const [sentRes, hostedRes] = await Promise.all([
     supabase
@@ -72,6 +105,19 @@ export default async function RequestsPage() {
     (request) => Boolean(request.activities)
   );
   const hostedActivities = (hostedRes.data ?? []) as ActivityWithAttendees[];
+  const visibleSentRequests =
+    activeStatus === "all"
+      ? sentRequests
+      : sentRequests.filter((request) => request.status === activeStatus);
+  const visibleHostedActivities = hostedActivities
+    .map((activity) => ({
+      ...activity,
+      join_requests:
+        activeStatus === "all"
+          ? activity.join_requests
+          : activity.join_requests.filter((request) => request.status === activeStatus),
+    }))
+    .filter((activity) => activity.join_requests.length > 0);
 
   const sentPending = sentRequests.filter((request) => request.status === "pending").length;
   const sentApproved = sentRequests.filter((request) => request.status === "approved").length;
@@ -124,6 +170,35 @@ export default async function RequestsPage() {
           </div>
         </div>
 
+        <div className="mb-6 flex flex-wrap items-center gap-2 rounded-[24px] border border-gray-200/80 bg-white/80 backdrop-blur p-3">
+          <span className="px-2 text-xs font-semibold uppercase tracking-[0.22em] text-gray-400">
+            Filter
+          </span>
+          {REQUEST_STATUS_FILTERS.map((filter) => {
+            const active = activeStatus === filter.value;
+
+            return (
+              <Link
+                key={filter.value}
+                href={getFilterHref(filter.value)}
+                className={`rounded-full px-4 py-2 text-sm font-semibold transition-all ${
+                  active ? filter.activeClassName : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
+              >
+                {filter.label}
+              </Link>
+            );
+          })}
+          {activeStatus !== "all" && (
+            <Link
+              href="/requests"
+              className="ml-auto text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors"
+            >
+              Clear filter
+            </Link>
+          )}
+        </div>
+
         <div className="grid xl:grid-cols-2 gap-6 items-start">
           <section className="rounded-[32px] border border-gray-200/80 bg-white/85 backdrop-blur p-5 md:p-6 shadow-[0_18px_60px_rgba(15,23,42,0.05)]">
             <div className="flex items-end justify-between gap-4 mb-5">
@@ -135,25 +210,44 @@ export default async function RequestsPage() {
                   Requests you sent
                 </h2>
               </div>
-              <div className="text-sm text-gray-500">{sentRequests.length} total</div>
+              <div className="text-sm text-gray-500">
+                {activeStatus === "all"
+                  ? `${sentRequests.length} total`
+                  : `${visibleSentRequests.length} ${getFilterLabel(activeStatus).toLowerCase()}`}
+              </div>
             </div>
 
-            {sentRequests.length === 0 ? (
+            {visibleSentRequests.length === 0 ? (
               <div className="rounded-[24px] border border-dashed border-gray-200 bg-gray-50 p-8 text-center">
-                <p className="font-semibold text-gray-900 mb-2">No requests yet</p>
-                <p className="text-sm text-gray-500 mb-4">
-                  Browse the feed and request to join an activity to start tracking here.
+                <p className="font-semibold text-gray-900 mb-2">
+                  {activeStatus === "all"
+                    ? "No requests yet"
+                    : `No ${getFilterLabel(activeStatus).toLowerCase()} requests`}
                 </p>
-                <Link
-                  href="/feed"
-                  className="inline-flex items-center justify-center rounded-full bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors"
-                >
-                  Browse feed
-                </Link>
+                <p className="text-sm text-gray-500 mb-4">
+                  {activeStatus === "all"
+                    ? "Browse the feed and request to join an activity to start tracking here."
+                    : "Try another status filter to see more requests."}
+                </p>
+                {activeStatus === "all" ? (
+                  <Link
+                    href="/feed"
+                    className="inline-flex items-center justify-center rounded-full bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors"
+                  >
+                    Browse feed
+                  </Link>
+                ) : (
+                  <Link
+                    href="/requests"
+                    className="inline-flex items-center justify-center rounded-full bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors"
+                  >
+                    Show all
+                  </Link>
+                )}
               </div>
             ) : (
               <div className="space-y-4">
-                {sentRequests.map((request) => {
+                {visibleSentRequests.map((request) => {
                   const activity = request.activities;
                   const c = getCategoryConfig(activity.category);
                   const gradientClass = getCategoryGradient(activity.category);
@@ -258,25 +352,44 @@ export default async function RequestsPage() {
                   Requests on your activities
                 </h2>
               </div>
-              <div className="text-sm text-gray-500">{hostedActivities.length} activities</div>
+              <div className="text-sm text-gray-500">
+                {activeStatus === "all"
+                  ? `${hostedActivities.length} activities`
+                  : `${visibleHostedActivities.length} ${getFilterLabel(activeStatus).toLowerCase()} activities`}
+              </div>
             </div>
 
-            {hostedActivities.length === 0 ? (
+            {visibleHostedActivities.length === 0 ? (
               <div className="rounded-[24px] border border-dashed border-gray-200 bg-gray-50 p-8 text-center">
-                <p className="font-semibold text-gray-900 mb-2">No hosted activities yet</p>
-                <p className="text-sm text-gray-500 mb-4">
-                  Post an activity to start receiving requests here.
+                <p className="font-semibold text-gray-900 mb-2">
+                  {activeStatus === "all"
+                    ? "No hosted activities yet"
+                    : `No ${getFilterLabel(activeStatus).toLowerCase()} requests`}
                 </p>
-                <Link
-                  href="/create"
-                  className="inline-flex items-center justify-center rounded-full bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors"
-                >
-                  Post activity
-                </Link>
+                <p className="text-sm text-gray-500 mb-4">
+                  {activeStatus === "all"
+                    ? "Post an activity to start receiving requests here."
+                    : "Try another status filter to see requests on your activities."}
+                </p>
+                {activeStatus === "all" ? (
+                  <Link
+                    href="/create"
+                    className="inline-flex items-center justify-center rounded-full bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors"
+                  >
+                    Post activity
+                  </Link>
+                ) : (
+                  <Link
+                    href="/requests"
+                    className="inline-flex items-center justify-center rounded-full bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors"
+                  >
+                    Show all
+                  </Link>
+                )}
               </div>
             ) : (
               <div className="space-y-4">
-                {hostedActivities.map((activity) => {
+                {visibleHostedActivities.map((activity) => {
                   const c = getCategoryConfig(activity.category);
                   const gradientClass = getCategoryGradient(activity.category);
                   const timeZone = getStoredLocationTimezone(activity.location);
