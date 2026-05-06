@@ -6,6 +6,18 @@ type GeocodingResult = {
   country?: string;
 };
 
+export type ResolvedLocation = {
+  label: string;
+  latitude: number;
+  longitude: number;
+};
+
+type EncodedLocation = {
+  label: string;
+  latitude: number;
+  longitude: number;
+};
+
 function buildLocationCandidates(location: string): string[] {
   const trimmed = location.trim();
   const candidates = [
@@ -26,24 +38,99 @@ function formatResolvedLocation(result: GeocodingResult) {
     .join(", ");
 }
 
-export async function resolveLocation(location: string): Promise<{
-  displayLocation: string;
-  latitude: number;
-  longitude: number;
-} | null> {
+export function encodeStoredLocation(
+  label: string,
+  latitude: number | null,
+  longitude: number | null
+) {
+  if (
+    typeof latitude === "number" &&
+    Number.isFinite(latitude) &&
+    typeof longitude === "number" &&
+    Number.isFinite(longitude)
+  ) {
+    const payload: EncodedLocation = {
+      label: label.trim(),
+      latitude,
+      longitude,
+    };
+    return JSON.stringify(payload);
+  }
+
+  return label.trim();
+}
+
+export function decodeStoredLocation(raw: string): ResolvedLocation | null {
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
+
+  if (trimmed.startsWith("{")) {
+    try {
+      const parsed = JSON.parse(trimmed) as Partial<EncodedLocation>;
+      if (
+        typeof parsed.label === "string" &&
+        typeof parsed.latitude === "number" &&
+        typeof parsed.longitude === "number"
+      ) {
+        return {
+          label: parsed.label,
+          latitude: parsed.latitude,
+          longitude: parsed.longitude,
+        };
+      }
+    } catch {
+      // Fall through to plain-text handling.
+    }
+  }
+
+  return null;
+}
+
+export function getStoredLocationLabel(raw: string) {
+  return decodeStoredLocation(raw)?.label ?? raw;
+}
+
+export function getStoredLocationCoordinates(raw: string) {
+  const decoded = decodeStoredLocation(raw);
+  if (!decoded) return null;
+
+  return {
+    latitude: decoded.latitude,
+    longitude: decoded.longitude,
+  };
+}
+
+export async function searchLocationSuggestions(
+  query: string,
+  count = 6
+): Promise<ResolvedLocation[]> {
+  const trimmed = query.trim();
+  if (trimmed.length < 2) return [];
+
+  const response = await fetch(
+    `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(trimmed)}&count=${count}&language=en&format=json`
+  );
+
+  if (!response.ok) return [];
+
+  const data = await response.json();
+  const results = (data.results ?? []) as GeocodingResult[];
+
+  return results.map((result) => ({
+    label: formatResolvedLocation(result),
+    latitude: result.latitude,
+    longitude: result.longitude,
+  }));
+}
+
+export async function resolveLocation(location: string): Promise<ResolvedLocation | null> {
   for (const candidate of buildLocationCandidates(location)) {
-    const response = await fetch(
-      `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(candidate)}&count=1&language=en&format=json`
-    );
-
-    if (!response.ok) continue;
-
-    const data = await response.json();
-    const result = data.results?.[0] as GeocodingResult | undefined;
+    const suggestions = await searchLocationSuggestions(candidate, 1);
+    const result = suggestions[0];
 
     if (result) {
       return {
-        displayLocation: formatResolvedLocation(result),
+        label: result.label,
         latitude: result.latitude,
         longitude: result.longitude,
       };

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getCategoryConfig, getCategoryGradient } from "./CategoryBadge";
 import { WeatherDisplay } from "./WeatherDisplay";
+import { getStoredLocationLabel } from "@/lib/location";
 import type { ActivityWithAttendees } from "@/types/app";
 
 function formatTime(dateStr: string) {
@@ -62,7 +63,7 @@ export function FeedItem({ activity }: { activity: ActivityWithAttendees }) {
           <div className="flex items-center justify-between mb-3 gap-2">
             <div className="flex items-center gap-1.5 text-sm text-gray-600 flex-1 min-w-0">
               <span>📍</span>
-              <span className="truncate">{activity.location}</span>
+              <span className="truncate">{getStoredLocationLabel(activity.location)}</span>
             </div>
             <div className="flex items-center gap-1.5 text-sm text-gray-600 flex-shrink-0">
               <div className="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center text-xs font-semibold text-indigo-700 overflow-hidden">

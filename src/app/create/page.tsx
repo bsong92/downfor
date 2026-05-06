@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Navbar } from "@/components/Navbar";
 import { CATEGORIES } from "@/types/database";
 import { getCategoryConfig, getCategoryGradient } from "@/components/CategoryBadge";
+import { LocationAutocomplete } from "@/components/LocationAutocomplete";
 import { createActivity, uploadActivityPhoto } from "@/app/actions";
 
 export default function CreatePage() {
@@ -22,6 +23,8 @@ export default function CreatePage() {
     date: "",
     time: "",
     location: "",
+    locationLatitude: null as number | null,
+    locationLongitude: null as number | null,
     spots: "2",
     is_outdoor: true,
   });
@@ -60,6 +63,8 @@ export default function CreatePage() {
         date: form.date,
         time: form.time,
         location: form.location,
+        locationLatitude: form.locationLatitude,
+        locationLongitude: form.locationLongitude,
         spots: form.spots,
         is_outdoor: form.is_outdoor,
         image_url: coverPhotoUrl || undefined,
@@ -222,20 +227,22 @@ export default function CreatePage() {
 
           {/* Location Section */}
           <div className="bg-gray-50 rounded-2xl p-4">
-            <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">
-              Where
-            </p>
-            <input
-              type="text"
-              required
-              placeholder="Jackson Park, gym, coffee shop..."
+            <LocationAutocomplete
+              label="Where"
               value={form.location}
-              onChange={(e) => set("location", e.target.value)}
-              className="w-full px-4 py-3 rounded-lg bg-white border border-gray-200 text-sm font-medium text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-300"
+              latitude={form.locationLatitude}
+              longitude={form.locationLongitude}
+              placeholder="Jackson Park, gym, coffee shop..."
+              helperText="Pick a real place so weather can use map coordinates."
+              onChange={({ value, latitude, longitude }) =>
+                setForm((prev) => ({
+                  ...prev,
+                  location: value,
+                  locationLatitude: latitude,
+                  locationLongitude: longitude,
+                }))
+              }
             />
-            <p className="mt-2 text-xs text-gray-500">
-              We&apos;ll resolve this place so weather can use real map coordinates.
-            </p>
           </div>
 
           {/* Spots Section */}

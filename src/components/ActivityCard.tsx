@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { CategoryBadge, getCategoryConfig } from "./CategoryBadge";
+import { getStoredLocationLabel } from "@/lib/location";
 import type { ActivityWithAttendees } from "@/types/app";
 
 function formatDate(dateStr: string) {
@@ -69,7 +70,7 @@ export function ActivityCard({ activity }: { activity: ActivityWithAttendees }) 
             </div>
             <div className="flex items-center gap-2">
               <span className="text-base">📍</span>
-              <span className="text-gray-600">{activity.location}</span>
+              <span className="text-gray-600">{getStoredLocationLabel(activity.location)}</span>
             </div>
           </div>
         </div>

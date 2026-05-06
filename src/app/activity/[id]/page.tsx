@@ -4,6 +4,7 @@ import { WeatherDisplay } from "@/components/WeatherDisplay";
 import { createServiceClient } from "@/lib/supabase-server";
 import { getRequiredProfile } from "@/lib/current-user";
 import { createJoinRequest, updateRequestStatus } from "@/app/actions";
+import { getStoredLocationLabel } from "@/lib/location";
 import type { ActivityWithPoster, JoinRequestWithRequester } from "@/types/app";
 import Link from "next/link";
 import { ActivityEditClient } from "@/app/activity/ActivityEditClient";
@@ -100,7 +101,7 @@ export default async function ActivityDetailPage({
             {activity.title}
           </h1>
           <p className="text-white/80 text-sm flex items-center gap-1">
-            📍 {activity.location}
+            📍 {getStoredLocationLabel(activity.location)}
           </p>
         </div>
       </div>

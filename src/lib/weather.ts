@@ -1,5 +1,5 @@
 import type { WeatherData } from "@/types/database";
-import { resolveLocation } from "./location";
+import { getStoredLocationCoordinates, resolveLocation } from "./location";
 
 const WEATHER_ICONS: Record<number, string> = {
   0: "☀️",
@@ -60,15 +60,13 @@ export async function getWeatherForLocation(
   date: string
 ): Promise<WeatherData | null> {
   try {
-    // Geocode the location with a Chicago fallback for venue-style inputs.
-    const geo = await resolveLocation(location);
+    const storedCoords = getStoredLocationCoordinates(location);
+    const geo = storedCoords ?? (await resolveLocation(location));
     if (!geo) return null;
-
-    const { latitude, longitude } = geo;
 
     // Get weather forecast
     const weatherResponse = await fetch(
-      `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&daily=temperature_2m_max,temperature_2m_min,weather_code,relative_humidity_2m_max,precipitation_sum,wind_speed_10m_max&forecast_days=16&timezone=auto`
+      `https://api.open-meteo.com/v1/forecast?latitude=${geo.latitude}&longitude=${geo.longitude}&daily=temperature_2m_max,temperature_2m_min,weather_code,relative_humidity_2m_max,precipitation_sum,wind_speed_10m_max&forecast_days=16&timezone=auto`
     );
 
     if (!weatherResponse.ok) return null;

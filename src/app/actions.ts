@@ -2,7 +2,10 @@
 
 import { createServiceClient } from "@/lib/supabase-server";
 import { getRequiredProfile } from "@/lib/current-user";
-import { resolveLocation } from "@/lib/location";
+import {
+  encodeStoredLocation,
+  resolveLocation,
+} from "@/lib/location";
 import { revalidatePath } from "next/cache";
 
 async function fileToBuffer(file: File): Promise<Buffer> {
@@ -20,11 +23,20 @@ export async function createActivity(data: {
   spots: string;
   is_outdoor: boolean;
   image_url?: string;
+  locationLatitude?: number | null;
+  locationLongitude?: number | null;
 }) {
   try {
     const supabase = createServiceClient();
     const user = await getRequiredProfile();
     const resolvedLocation = await resolveLocation(data.location);
+    const latitude = data.locationLatitude ?? resolvedLocation?.latitude ?? null;
+    const longitude = data.locationLongitude ?? resolvedLocation?.longitude ?? null;
+    const storedLocation = encodeStoredLocation(
+      resolvedLocation?.label ?? data.location,
+      latitude,
+      longitude
+    );
 
     const [year, month, day] = data.date.split("-");
     const [hours, minutes] = data.time.split(":");
@@ -48,7 +60,7 @@ export async function createActivity(data: {
       title: data.title,
       description: data.description || null,
       activity_date: activityDate.toISOString(),
-      location: resolvedLocation?.displayLocation ?? data.location,
+      location: storedLocation,
       spots_available: parseInt(data.spots, 10),
       is_outdoor: data.is_outdoor,
       image_url: data.image_url || null,
@@ -61,7 +73,7 @@ export async function createActivity(data: {
         console.log(`[createActivity] Fetching weather for ${activity.id}`);
         const weatherResult = await updateActivityWeather(
           activity.id,
-          resolvedLocation?.displayLocation ?? data.location,
+          storedLocation,
           data.date,
           data.is_outdoor
         );
@@ -155,11 +167,20 @@ export async function updateActivity(activityId: string, data: {
   location: string;
   spots: string;
   is_outdoor?: boolean;
+  locationLatitude?: number | null;
+  locationLongitude?: number | null;
 }) {
   try {
     const supabase = createServiceClient();
     const user = await getRequiredProfile();
     const resolvedLocation = await resolveLocation(data.location);
+    const latitude = data.locationLatitude ?? resolvedLocation?.latitude ?? null;
+    const longitude = data.locationLongitude ?? resolvedLocation?.longitude ?? null;
+    const storedLocation = encodeStoredLocation(
+      resolvedLocation?.label ?? data.location,
+      latitude,
+      longitude
+    );
 
     // Verify user is the poster
     const { data: activity } = await supabase
@@ -192,7 +213,7 @@ export async function updateActivity(activityId: string, data: {
       title: data.title,
       description: data.description || null,
       activity_date: activityDate.toISOString(),
-      location: resolvedLocation?.displayLocation ?? data.location,
+      location: storedLocation,
       spots_available: parseInt(data.spots, 10),
       updated_at: new Date().toISOString(),
     };
@@ -211,7 +232,7 @@ export async function updateActivity(activityId: string, data: {
     if (data.is_outdoor) {
       await updateActivityWeather(
         activityId,
-        resolvedLocation?.displayLocation ?? data.location,
+        storedLocation,
         data.date,
         data.is_outdoor
       );

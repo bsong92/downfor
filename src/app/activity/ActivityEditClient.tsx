@@ -4,6 +4,8 @@ import { useState } from "react";
 import { CATEGORIES } from "@/types/database";
 import { updateActivity } from "@/app/actions";
 import { CategoryBadge } from "@/components/CategoryBadge";
+import { LocationAutocomplete } from "@/components/LocationAutocomplete";
+import { getStoredLocationCoordinates, getStoredLocationLabel } from "@/lib/location";
 import type { ActivityWithPoster } from "@/types/app";
 
 export function ActivityEditClient({ activity }: { activity: ActivityWithPoster }) {
@@ -14,6 +16,7 @@ export function ActivityEditClient({ activity }: { activity: ActivityWithPoster 
   const activityDate = new Date(activity.activity_date);
   const dateStr = activityDate.toISOString().split("T")[0];
   const timeStr = activityDate.toTimeString().slice(0, 5);
+  const storedLocation = getStoredLocationCoordinates(activity.location);
 
   const [form, setForm] = useState({
     category: activity.category,
@@ -21,7 +24,9 @@ export function ActivityEditClient({ activity }: { activity: ActivityWithPoster 
     description: activity.description || "",
     date: dateStr,
     time: timeStr,
-    location: activity.location,
+    location: getStoredLocationLabel(activity.location),
+    locationLatitude: storedLocation?.latitude ?? null,
+    locationLongitude: storedLocation?.longitude ?? null,
     spots: activity.spots_available.toString(),
     is_outdoor: activity.is_outdoor ?? true,
   });
@@ -150,16 +155,22 @@ export function ActivityEditClient({ activity }: { activity: ActivityWithPoster 
           {/* Location */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
-            <input
-              type="text"
+            <LocationAutocomplete
+              label="Location"
               value={form.location}
-              onChange={(e) => set("location", e.target.value)}
+              latitude={form.locationLatitude}
+              longitude={form.locationLongitude}
               placeholder="Where should people meet?"
-              className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent"
+              helperText="Pick a real place so weather can track it reliably."
+              onChange={({ value, latitude, longitude }) =>
+                setForm((prev) => ({
+                  ...prev,
+                  location: value,
+                  locationLatitude: latitude,
+                  locationLongitude: longitude,
+                }))
+              }
             />
-            <p className="mt-2 text-xs text-gray-500">
-              This will be resolved to a real place so weather can track it reliably.
-            </p>
           </div>
 
           {/* Spots */}
