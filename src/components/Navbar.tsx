@@ -4,6 +4,7 @@ import { Show, SignInButton, UserButton } from "@clerk/nextjs";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useUser } from "@/context/UserContext";
+import { NotificationBell } from "@/components/NotificationBell";
 
 const links = [
   { href: "/feed", label: "Feed" },
@@ -46,6 +47,7 @@ export function Navbar() {
           {hasClerk ? (
             <>
               <Show when="signed-in">
+                <NotificationBell />
                 <Link
                   href="/profile"
                   className={`px-3.5 py-1.5 rounded-lg text-sm font-medium transition-colors ${

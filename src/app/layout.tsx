@@ -3,6 +3,8 @@ import { Fraunces, IBM_Plex_Sans } from "next/font/google";
 import "./globals.css";
 import { AppProviders } from "@/components/AppProviders";
 import { getCurrentProfile } from "@/lib/current-user";
+import { createServiceClient } from "@/lib/supabase-server";
+import { getNotifications } from "@/lib/notifications";
 
 const fraunces = Fraunces({
   subsets: ["latin"],
@@ -22,11 +24,17 @@ export const metadata: Metadata = {
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const user = await getCurrentProfile();
+  const supabase = createServiceClient();
+  const notifications = user
+    ? (await getNotifications(supabase, user)).items
+    : [];
 
   return (
     <html lang="en" className={`${fraunces.variable} ${ibmPlexSans.variable} h-full`}>
       <body className="min-h-full bg-[radial-gradient(circle_at_top_left,rgba(79,70,229,0.10),transparent_30%),linear-gradient(180deg,#fbfbff_0%,#f7f7fb_45%,#ffffff_100%)] text-gray-900 antialiased">
-        <AppProviders initialUser={user}>{children}</AppProviders>
+        <AppProviders initialUser={user} initialNotifications={notifications}>
+          {children}
+        </AppProviders>
       </body>
     </html>
   );

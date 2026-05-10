@@ -2,7 +2,9 @@
 
 import { ClerkProvider } from "@clerk/nextjs";
 import { UserProvider } from "@/context/UserContext";
+import { NotificationProvider } from "@/context/NotificationContext";
 import { CLERK_ALLOWED_ORIGINS } from "@/lib/clerk-origins";
+import type { NotificationItem } from "@/lib/notifications";
 import type { Profile } from "@/types/database";
 
 function hasClerkPublishableKey() {
@@ -12,11 +14,17 @@ function hasClerkPublishableKey() {
 export function AppProviders({
   children,
   initialUser,
+  initialNotifications,
 }: {
   children: React.ReactNode;
   initialUser: Profile | null;
+  initialNotifications: NotificationItem[];
 }) {
-  const content = <UserProvider initialUser={initialUser}>{children}</UserProvider>;
+  const content = (
+    <NotificationProvider initialNotifications={initialNotifications}>
+      <UserProvider initialUser={initialUser}>{children}</UserProvider>
+    </NotificationProvider>
+  );
 
   if (!hasClerkPublishableKey()) {
     return content;
