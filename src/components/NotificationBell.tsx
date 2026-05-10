@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useNotifications } from "@/context/NotificationContext";
 
@@ -15,7 +15,27 @@ const toneClasses = {
 export function NotificationBell() {
   const notifications = useNotifications();
   const [open, setOpen] = useState(false);
+  const [readIds, setReadIds] = useState<string[]>([]);
   const ref = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const stored = window.localStorage.getItem("downfor-notification-read-ids");
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored) as unknown;
+        if (Array.isArray(parsed)) {
+          setReadIds(parsed.filter((value): value is string => typeof value === "string"));
+        }
+      } catch {
+        // Ignore malformed local state.
+      }
+    }
+  }, []);
+
+  const unreadNotifications = useMemo(
+    () => notifications.filter((notification) => !readIds.includes(notification.id)),
+    [notifications, readIds]
+  );
 
   useEffect(() => {
     function onClickOutside(event: MouseEvent) {
@@ -28,19 +48,33 @@ export function NotificationBell() {
     return () => document.removeEventListener("mousedown", onClickOutside);
   }, []);
 
+  function markRead(notificationId: string) {
+    setReadIds((current) => {
+      if (current.includes(notificationId)) return current;
+
+      const next = [...current, notificationId];
+      window.localStorage.setItem("downfor-notification-read-ids", JSON.stringify(next));
+      return next;
+    });
+  }
+
+  function toggleOpen() {
+    setOpen((value) => !value);
+  }
+
   return (
     <div ref={ref} className="relative">
       <button
         type="button"
-        onClick={() => setOpen((value) => !value)}
+        onClick={toggleOpen}
         className="relative inline-flex items-center justify-center rounded-lg px-3 py-2 text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors"
         aria-label="Open notifications"
         aria-expanded={open}
       >
         <span className="text-lg">🔔</span>
-        {notifications.length > 0 && (
+        {unreadNotifications.length > 0 && (
           <span className="absolute -right-0.5 -top-0.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-semibold text-white">
-            {notifications.length}
+            {unreadNotifications.length}
           </span>
         )}
       </button>
@@ -53,7 +87,9 @@ export function NotificationBell() {
                 Notifications
               </p>
               <p className="text-sm text-gray-500">
-                {notifications.length ? `${notifications.length} recent items` : "You're all caught up"}
+                {unreadNotifications.length
+                  ? `${unreadNotifications.length} unread item${unreadNotifications.length === 1 ? "" : "s"}`
+                  : "You're all caught up"}
               </p>
             </div>
           </div>
@@ -68,17 +104,26 @@ export function NotificationBell() {
               </div>
             ) : (
               <div className="space-y-2">
-                {notifications.map((notification) => (
+                {notifications.map((notification) => {
+                  const isRead = readIds.includes(notification.id);
+
+                  return (
                   <Link
                     key={notification.id}
                     href={notification.href}
-                    onClick={() => setOpen(false)}
-                    className={`block rounded-2xl border px-4 py-3 transition-colors hover:shadow-sm ${toneClasses[notification.tone]}`}
+                    onClick={() => {
+                      markRead(notification.id);
+                      setOpen(false);
+                    }}
+                    className={`block rounded-2xl border px-4 py-3 transition-colors hover:shadow-sm ${
+                      isRead ? "opacity-60" : ""
+                    } ${toneClasses[notification.tone]}`}
                   >
                     <p className="text-sm font-semibold">{notification.title}</p>
                     <p className="text-sm opacity-80">{notification.subtitle}</p>
                   </Link>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
