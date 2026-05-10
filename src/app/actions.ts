@@ -8,6 +8,10 @@ import {
   resolveLocation,
 } from "@/lib/location";
 import { upsertChatReadCursor } from "@/lib/chat-notifications";
+import {
+  sendChatMessageNotifications,
+  sendRequestStatusNotification,
+} from "@/lib/email-notifications";
 import { revalidatePath } from "next/cache";
 
 async function fileToBuffer(file: File): Promise<Buffer> {
@@ -181,6 +185,12 @@ export async function createActivityMessage(activityId: string, formData: FormDa
   });
   await markChatRead(supabase, activityId, user.id);
 
+  void sendChatMessageNotifications(supabase, {
+    activityId,
+    senderId: user.id,
+    body,
+  });
+
   revalidatePath(`/activity/${activityId}`);
   revalidatePath("/feed");
 }
@@ -262,6 +272,10 @@ export async function updateRequestStatus(
     return;
   }
 
+  if (currentRequest.status === status) {
+    return;
+  }
+
   await supabase
     .from("join_requests")
     .update({ status, updated_at: new Date().toISOString() })
@@ -301,6 +315,14 @@ export async function updateRequestStatus(
         updated_at: new Date().toISOString(),
       })
       .eq("id", activityId);
+  }
+
+  if (status === "approved" || status === "declined") {
+    void sendRequestStatusNotification(supabase, {
+      activityId,
+      requestId,
+      newStatus: status,
+    });
   }
 
   revalidatePath(`/activity/${activityId}`);
@@ -445,6 +467,8 @@ export async function updateProfile(data: {
   photo_url: string;
   interests: string[];
   public_profile: boolean;
+  email_notifications_chat: boolean;
+  email_notifications_requests: boolean;
 }) {
   try {
     const supabase = createServiceClient();
@@ -462,6 +486,8 @@ export async function updateProfile(data: {
         bio: data.bio ? data.bio.trim() : null,
         photo_url: data.photo_url ? data.photo_url.trim() : null,
         public_profile: data.public_profile,
+        email_notifications_chat: data.email_notifications_chat,
+        email_notifications_requests: data.email_notifications_requests,
         updated_at: new Date().toISOString(),
       })
       .eq("id", user.id)

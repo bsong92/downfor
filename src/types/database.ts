@@ -7,6 +7,8 @@ export type Profile = {
   bio: string | null;
   interests: string[];
   public_profile: boolean;
+  email_notifications_chat: boolean;
+  email_notifications_requests: boolean;
   created_at: string;
   updated_at: string;
 };

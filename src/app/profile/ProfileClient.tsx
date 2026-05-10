@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { CATEGORIES } from "@/types/database";
 import type { Profile } from "@/types/database";
 import { getCategoryConfig } from "@/components/CategoryBadge";
@@ -16,19 +16,25 @@ function capitalize(str: string): string {
 }
 
 export function ProfileClient({ initialUser }: { initialUser: Profile }) {
+  const defaultForm = useMemo(
+    () => ({
+      name: initialUser.name,
+      bio: initialUser.bio || "",
+      photo_url: initialUser.photo_url || "",
+      interests: initialUser.interests,
+      public_profile: initialUser.public_profile,
+      email_notifications_chat: initialUser.email_notifications_chat,
+      email_notifications_requests: initialUser.email_notifications_requests,
+    }),
+    [initialUser]
+  );
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [customInterestInput, setCustomInterestInput] = useState("");
-  const [form, setForm] = useState({
-    name: initialUser.name,
-    bio: initialUser.bio || "",
-    photo_url: initialUser.photo_url || "",
-    interests: initialUser.interests,
-    public_profile: initialUser.public_profile,
-  });
+  const [form, setForm] = useState(defaultForm);
 
   // Load draft from localStorage on mount
   useEffect(() => {
@@ -37,13 +43,13 @@ export function ProfileClient({ initialUser }: { initialUser: Profile }) {
       const draft = localStorage.getItem(STORAGE_KEY);
       if (draft) {
         const parsed = JSON.parse(draft);
-        setForm(parsed);
+        setForm({ ...defaultForm, ...parsed });
         console.log("Loaded draft from localStorage:", parsed);
       }
     } catch (e) {
       console.error("Failed to load draft:", e);
     }
-  }, []);
+  }, [defaultForm]);
 
   // Log form state whenever it changes
   useEffect(() => {
@@ -315,6 +321,45 @@ export function ProfileClient({ initialUser }: { initialUser: Profile }) {
               </label>
             </div>
 
+            {/* Notification preferences */}
+            <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+              <p className="text-sm font-medium text-gray-900">Email notifications</p>
+              <p className="text-xs text-gray-500 mt-1">
+                Control which updates should also be sent to your email.
+              </p>
+              <div className="mt-4 space-y-3">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={form.email_notifications_chat}
+                    onChange={(e) => set("email_notifications_chat", e.target.checked)}
+                    className="w-4 h-4 text-indigo-600 rounded cursor-pointer"
+                  />
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">Chat messages</p>
+                    <p className="text-xs text-gray-500">
+                      Send an email when someone posts in an activity chat you can access.
+                    </p>
+                  </div>
+                </label>
+
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={form.email_notifications_requests}
+                    onChange={(e) => set("email_notifications_requests", e.target.checked)}
+                    className="w-4 h-4 text-indigo-600 rounded cursor-pointer"
+                  />
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">Request updates</p>
+                    <p className="text-xs text-gray-500">
+                      Send an email when your join request is approved or declined.
+                    </p>
+                  </div>
+                </label>
+              </div>
+            </div>
+
             {/* Buttons */}
             <div className="flex gap-2 pt-2">
               <button
@@ -332,13 +377,7 @@ export function ProfileClient({ initialUser }: { initialUser: Profile }) {
                   setError(null);
                   setCustomInterestInput("");
                   // Revert to saved values, but keep localStorage for next time
-                  setForm({
-                    name: initialUser.name,
-                    bio: initialUser.bio || "",
-                    photo_url: initialUser.photo_url || "",
-                    interests: initialUser.interests,
-                    public_profile: initialUser.public_profile,
-                  });
+                  setForm(defaultForm);
                 }}
                 disabled={loading || uploadingPhoto}
                 className="px-4 py-2 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-50"

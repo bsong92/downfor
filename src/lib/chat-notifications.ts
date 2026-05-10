@@ -11,16 +11,35 @@ type ChatMessageRow = {
   created_at: string;
 };
 
+export type ChatUnreadStats = {
+  count: number;
+  latestUnreadAt: string | null;
+};
+
 export async function getUnreadChatCounts(
   supabase: SupabaseClient,
   activityIds: string[],
   profileId: string
 ) {
+  const stats = await getUnreadChatStats(supabase, activityIds, profileId);
   const counts = new Map<string, number>();
+  for (const [activityId, value] of stats.entries()) {
+    counts.set(activityId, value.count);
+  }
+
+  return counts;
+}
+
+export async function getUnreadChatStats(
+  supabase: SupabaseClient,
+  activityIds: string[],
+  profileId: string
+) {
+  const stats = new Map<string, ChatUnreadStats>();
   const uniqueIds = Array.from(new Set(activityIds)).filter(Boolean);
 
   if (!uniqueIds.length || !profileId) {
-    return counts;
+    return stats;
   }
 
   const [readsRes, messagesRes] = await Promise.all([
@@ -56,10 +75,20 @@ export async function getUnreadChatCounts(
       continue;
     }
 
-    counts.set(message.activity_id, (counts.get(message.activity_id) ?? 0) + 1);
+    const current = stats.get(message.activity_id) ?? {
+      count: 0,
+      latestUnreadAt: null,
+    };
+
+    current.count += 1;
+    if (!current.latestUnreadAt || new Date(message.created_at) > new Date(current.latestUnreadAt)) {
+      current.latestUnreadAt = message.created_at;
+    }
+
+    stats.set(message.activity_id, current);
   }
 
-  return counts;
+  return stats;
 }
 
 export async function upsertChatReadCursor(
