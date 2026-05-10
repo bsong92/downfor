@@ -1,36 +1,107 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# DownFor
 
-## Getting Started
+DownFor is a desktop-first activity board for finding people to do things with. It lets users post activities, request to join them, manage approvals, chat with approved attendees, and browse upcoming plans in a calendar view.
 
-First, run the development server:
+The app is built around a real production stack:
+- Clerk for authentication
+- Supabase for persistence and row-level security
+- Open-Meteo for weather and geocoding
+- Railway for background weather refreshes
+- Vercel for deployment
+
+Live app: https://downfor.vercel.app
+
+## What’s in the app
+
+- Feed with desktop-style activity cards
+- Activity detail pages with join requests and shared chat
+- Requests dashboard with pending / approved / declined filtering
+- Calendar view for upcoming activities
+- Members directory and profile page
+- Location autocomplete and weather-aware outdoor activities
+- Photo attachments and message deletion in activity chat
+
+## Quick Start
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open `http://localhost:3000`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Environment Variables
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Create a local `.env.local` file with the values from your deployment dashboard:
 
-## Learn More
+```bash
+NEXT_PUBLIC_SUPABASE_URL=...
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=...
+SUPABASE_SERVICE_ROLE_KEY=...
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=...
+CLERK_SECRET_KEY=...
+CRON_SECRET=...
+DOWNFOR_API_URL=...
+LOCATION_AUTOCOMPLETE_PROVIDER=...
+```
 
-To learn more about Next.js, take a look at the following resources:
+The repository ignores `.env*` files by default.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Core Routes
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- `/feed` - activity feed
+- `/create` - post a new activity
+- `/requests` - sent and incoming requests
+- `/calendar` - month view and upcoming schedule
+- `/members` - public community directory
+- `/profile` - current user profile and hosted/joined activities
+- `/activity/[id]` - activity detail, requests, and chat
 
-## Deploy on Vercel
+## Weather + Chat
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Outdoor activities use Open-Meteo forecasts. A Railway worker refreshes weather in the background through the `/api/cron/weather-refresh` endpoint.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Approved attendees and the host share one activity chat thread. Messages can include photo attachments, and senders can delete their own messages.
+
+## Manual Smoke Tests
+
+See [docs/SMOKE_TESTS.md](docs/SMOKE_TESTS.md) for the lightweight checklist I use after changes.
+
+To run the automated browser smoke tests:
+
+```bash
+npx playwright install chromium
+npm run test:e2e
+```
+
+To create an authenticated Playwright state file for private-page tests:
+
+```bash
+npm run auth:record
+```
+
+After you sign in once in the browser, the saved `.auth/user.json` file can be reused for the authenticated test spec.
+
+If the local Clerk page does not render, use the production app instead:
+
+```bash
+npm run auth:record:prod
+```
+
+To run only the authenticated spec:
+
+```bash
+npm run test:e2e:auth
+```
+
+To run the authenticated spec against production:
+
+```bash
+npm run test:e2e:auth:prod
+```
+
+## Notes for Reviewers
+
+- The project started from a standard Next.js scaffold, but the current app is significantly different from the boilerplate.
+- The code intentionally defers email notifications, push notifications, maps, and real-time chat presence to keep the core loop solid.
+- If you want a quick orientation, start with the feed, requests, calendar, and activity detail pages.

@@ -1,7 +1,10 @@
 import { clerkMiddleware } from "@clerk/nextjs/server";
 import { NextResponse, type NextRequest } from "next/server";
+import { CLERK_ALLOWED_ORIGINS } from "@/lib/clerk-origins";
 
-const clerkHandler = clerkMiddleware();
+const clerkHandler = clerkMiddleware({
+  authorizedParties: CLERK_ALLOWED_ORIGINS,
+});
 
 function hasClerkCredentials() {
   return Boolean(

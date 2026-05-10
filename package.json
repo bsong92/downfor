@@ -6,7 +6,14 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "migrate": "node scripts/run-migration.js"
+    "migrate": "node scripts/run-migration.js",
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:auth": "PLAYWRIGHT_AUTH_STATE=.auth/user.json playwright test tests/e2e/authenticated.spec.ts",
+    "test:e2e:auth:prod": "PLAYWRIGHT_BASE_URL=https://downfor.vercel.app PLAYWRIGHT_AUTH_STATE=.auth/user.json playwright test tests/e2e/authenticated.spec.ts",
+    "test:e2e:auth:headed": "PLAYWRIGHT_AUTH_STATE=.auth/user.json playwright test tests/e2e/authenticated.spec.ts --headed",
+    "auth:record": "playwright codegen --save-storage=.auth/user.json http://127.0.0.1:3000/requests",
+    "auth:record:prod": "playwright codegen --save-storage=.auth/user.json https://downfor.vercel.app/requests"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.2.7",
@@ -17,6 +24,7 @@
     "resend": "^6.12.2"
   },
   "devDependencies": {
+    "@playwright/test": "^1.59.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

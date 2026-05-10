@@ -2,6 +2,7 @@
 
 import { ClerkProvider } from "@clerk/nextjs";
 import { UserProvider } from "@/context/UserContext";
+import { CLERK_ALLOWED_ORIGINS } from "@/lib/clerk-origins";
 import type { Profile } from "@/types/database";
 
 function hasClerkPublishableKey() {
@@ -21,5 +22,5 @@ export function AppProviders({
     return content;
   }
 
-  return <ClerkProvider>{content}</ClerkProvider>;
+  return <ClerkProvider allowedRedirectOrigins={CLERK_ALLOWED_ORIGINS}>{content}</ClerkProvider>;
 }
