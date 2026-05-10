@@ -8,25 +8,61 @@ import { FAB } from "@/components/FAB";
 import { getStoredLocationTimezone } from "@/lib/location";
 import type { ActivityWithAttendees } from "@/types/app";
 
-export function FeedClient({ activities }: { activities: ActivityWithAttendees[] }) {
+type FeedSort = "soonest" | "latest" | "most-spots";
+
+export function FeedClient({
+  activities,
+  unreadCounts,
+}: {
+  activities: ActivityWithAttendees[];
+  unreadCounts: Record<string, number>;
+}) {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"upcoming" | "past">("upcoming");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState<FeedSort>("soonest");
 
   const now = new Date();
+  const normalizedSearch = searchTerm.trim().toLowerCase();
 
-  // Filter by category
-  const filtered = activeCategory
+  const filteredByCategory = activeCategory
     ? activities.filter((a) => normalizeCategory(a.category) === activeCategory)
     : activities;
+
+  const filtered = normalizedSearch
+    ? filteredByCategory.filter((activity) => {
+        const haystack = [
+          activity.title,
+          activity.description ?? "",
+          activity.location,
+          activity.poster.name,
+        ]
+          .join(" ")
+          .toLowerCase();
+
+        return haystack.includes(normalizedSearch);
+      })
+    : filteredByCategory;
 
   // Split upcoming vs past
   const upcomingActivities = filtered.filter((a) => new Date(a.activity_date) >= now);
   const pastActivities = filtered.filter((a) => new Date(a.activity_date) < now).reverse();
 
   const displayActivities = activeTab === "upcoming" ? upcomingActivities : pastActivities;
-  const sortedActivities = [...displayActivities].sort(
-    (a, b) => new Date(a.activity_date).getTime() - new Date(b.activity_date).getTime()
-  );
+  const sortedActivities = [...displayActivities].sort((a, b) => {
+    const dateA = new Date(a.activity_date).getTime();
+    const dateB = new Date(b.activity_date).getTime();
+
+    if (sortBy === "latest") {
+      return dateB - dateA;
+    }
+
+    if (sortBy === "most-spots") {
+      return b.spots_available - a.spots_available;
+    }
+
+    return dateA - dateB;
+  });
 
   return (
     <div className="max-w-7xl mx-auto px-4 lg:px-6 py-8">
@@ -75,6 +111,32 @@ export function FeedClient({ activities }: { activities: ActivityWithAttendees[]
           >
             Past
           </button>
+        </div>
+
+        <div className="mb-5 flex flex-col gap-3 rounded-[24px] border border-gray-200/80 bg-white/85 backdrop-blur p-4 md:flex-row md:items-center md:justify-between">
+          <label className="flex-1">
+            <span className="sr-only">Search activities</span>
+            <input
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search title, location, host, or description"
+              className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-4 focus:ring-indigo-100"
+            />
+          </label>
+          <label className="flex items-center gap-3 md:min-w-56">
+            <span className="text-xs font-semibold uppercase tracking-[0.22em] text-gray-400">
+              Sort
+            </span>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as FeedSort)}
+              className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-4 focus:ring-indigo-100 md:w-52"
+            >
+              <option value="soonest">Soonest</option>
+              <option value="latest">Latest</option>
+              <option value="most-spots">Most spots left</option>
+            </select>
+          </label>
         </div>
 
         {/* Category filter */}
@@ -134,7 +196,11 @@ export function FeedClient({ activities }: { activities: ActivityWithAttendees[]
       ) : (
         <div className="grid gap-6 xl:grid-cols-2 items-stretch">
           {sortedActivities.map((activity) => (
-            <FeedItem key={activity.id} activity={activity} />
+            <FeedItem
+              key={activity.id}
+              activity={activity}
+              unreadCount={unreadCounts[activity.id] ?? 0}
+            />
           ))}
         </div>
       )}

@@ -8,11 +8,13 @@ import type { ActivityWithAttendees } from "@/types/app";
 interface ProfileActivitiesProps {
   hostedActivities: ActivityWithAttendees[];
   joinedActivities: ActivityWithAttendees[];
+  unreadCounts: Record<string, number>;
 }
 
 export function ProfileActivities({
   hostedActivities,
   joinedActivities,
+  unreadCounts,
 }: ProfileActivitiesProps) {
   const [activeTab, setActiveTab] = useState<"hosting" | "joined">("hosting");
 
@@ -79,7 +81,11 @@ export function ProfileActivities({
                   </h3>
                   <div className="space-y-4">
                     {upcomingHosted.map((activity) => (
-                      <ActivityCard key={activity.id} activity={activity} />
+                      <ActivityCard
+                        key={activity.id}
+                        activity={activity}
+                        unreadCount={unreadCounts[activity.id] ?? 0}
+                      />
                     ))}
                   </div>
                 </div>
@@ -92,7 +98,11 @@ export function ProfileActivities({
                   </h3>
                   <div className="space-y-4 opacity-60">
                     {pastHosted.map((activity) => (
-                      <ActivityCard key={activity.id} activity={activity} />
+                      <ActivityCard
+                        key={activity.id}
+                        activity={activity}
+                        unreadCount={unreadCounts[activity.id] ?? 0}
+                      />
                     ))}
                   </div>
                 </div>
@@ -124,7 +134,11 @@ export function ProfileActivities({
                   </h3>
                   <div className="space-y-4">
                     {upcomingJoined.map((activity) => (
-                      <ActivityCard key={activity.id} activity={activity} />
+                      <ActivityCard
+                        key={activity.id}
+                        activity={activity}
+                        unreadCount={unreadCounts[activity.id] ?? 0}
+                      />
                     ))}
                   </div>
                 </div>
@@ -137,7 +151,11 @@ export function ProfileActivities({
                   </h3>
                   <div className="space-y-4 opacity-60">
                     {pastJoined.map((activity) => (
-                      <ActivityCard key={activity.id} activity={activity} />
+                      <ActivityCard
+                        key={activity.id}
+                        activity={activity}
+                        unreadCount={unreadCounts[activity.id] ?? 0}
+                      />
                     ))}
                   </div>
                 </div>

@@ -1,6 +1,8 @@
 import { Navbar } from "@/components/Navbar";
 import { getCategoryGradient, getCategoryConfig } from "@/components/CategoryBadge";
 import { WeatherDisplay } from "@/components/WeatherDisplay";
+import { ActivityChatReadTracker } from "@/components/ActivityChatReadTracker";
+import { CopyLinkButton } from "@/components/CopyLinkButton";
 import { createServiceClient } from "@/lib/supabase-server";
 import { getRequiredProfile } from "@/lib/current-user";
 import {
@@ -11,6 +13,7 @@ import {
 } from "@/app/actions";
 import { getStoredLocationLabel, getStoredLocationTimezone } from "@/lib/location";
 import { formatInTimeZone } from "@/lib/date-time";
+import { getUnreadChatCounts } from "@/lib/chat-notifications";
 import type { ActivityMessageWithSender, ActivityWithPoster, JoinRequestWithRequester } from "@/types/app";
 import Link from "next/link";
 import { ActivityEditClient } from "@/app/activity/ActivityEditClient";
@@ -66,6 +69,7 @@ export default async function ActivityDetailPage({
   const resolvedRequests = requests.filter((r) => r.status !== "pending");
   const approvedRequests = requests.filter((r) => r.status === "approved");
   const canChat = isMyActivity || myRequest?.status === "approved";
+  const unreadCount = (await getUnreadChatCounts(supabase, [id], currentUser.id)).get(id) ?? 0;
 
   const c = getCategoryConfig(activity.category);
   const gradientClass = getCategoryGradient(activity.category);
@@ -135,19 +139,21 @@ export default async function ActivityDetailPage({
               </p>
             </div>
           </div>
-          {isMyActivity && (
-            <div className="flex items-center gap-2">
-              {approvedRequests.length > 0 && (
-                <Link
-                  href="#activity-chat"
-                  className="rounded-full bg-indigo-100 px-4 py-2 text-sm font-semibold text-indigo-700 hover:bg-indigo-200 transition-colors"
-                >
-                  Open chat
-                </Link>
-              )}
-              <ActivityEditClient activity={activity} />
-            </div>
-          )}
+          <div className="flex items-center gap-2">
+            {approvedRequests.length > 0 && (
+              <Link
+                href="#activity-chat"
+                className="rounded-full bg-indigo-100 px-4 py-2 text-sm font-semibold text-indigo-700 hover:bg-indigo-200 transition-colors"
+              >
+                Open chat{unreadCount > 0 ? ` • ${unreadCount} new` : ""}
+              </Link>
+            )}
+            <CopyLinkButton
+              href={`/activity/${id}`}
+              className="rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:border-indigo-300 hover:bg-indigo-50 transition-colors"
+            />
+            {isMyActivity && <ActivityEditClient activity={activity} />}
+          </div>
         </div>
 
         {/* Details */}
@@ -271,6 +277,7 @@ export default async function ActivityDetailPage({
           id="activity-chat"
           className="mb-6 rounded-[28px] border border-gray-200/80 bg-white/90 backdrop-blur p-5 md:p-6 shadow-[0_18px_60px_rgba(15,23,42,0.05)]"
         >
+          <ActivityChatReadTracker activityId={id} shouldMark={canChat && unreadCount > 0} />
           <div className="flex items-end justify-between gap-4 mb-5">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-indigo-600 mb-2">
@@ -279,6 +286,11 @@ export default async function ActivityDetailPage({
               <h2 className="font-display text-2xl md:text-3xl font-semibold text-gray-950">
                 One shared thread
               </h2>
+              {unreadCount > 0 && (
+                <p className="mt-2 inline-flex rounded-full bg-rose-100 px-3 py-1 text-xs font-semibold text-rose-700">
+                  {unreadCount} unread
+                </p>
+              )}
             </div>
             <div className="text-sm text-gray-500">
               {approvedRequests.length} approved

@@ -21,7 +21,13 @@ function formatTime(dateStr: string, timeZone: string | null) {
   });
 }
 
-export function FeedItem({ activity }: { activity: ActivityWithAttendees }) {
+export function FeedItem({
+  activity,
+  unreadCount = 0,
+}: {
+  activity: ActivityWithAttendees;
+  unreadCount?: number;
+}) {
   const { poster } = activity;
   const c = getCategoryConfig(activity.category);
   const gradientClass = getCategoryGradient(activity.category);
@@ -72,14 +78,21 @@ export function FeedItem({ activity }: { activity: ActivityWithAttendees }) {
               </h3>
             </div>
             {hasChat && (
-              <span
-                className="shrink-0 inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2.5 py-1.5 text-xs font-semibold text-indigo-700"
-                title="Chat available"
-                aria-label="Chat available"
-              >
-                <span>💬</span>
-                <span>Chat</span>
-              </span>
+              <div className="shrink-0 flex flex-col items-end gap-1">
+                <span
+                  className="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2.5 py-1.5 text-xs font-semibold text-indigo-700"
+                  title="Chat available"
+                  aria-label="Chat available"
+                >
+                  <span>💬</span>
+                  <span>Chat</span>
+                </span>
+                {unreadCount > 0 && (
+                  <span className="inline-flex items-center rounded-full bg-rose-100 px-2.5 py-1 text-xs font-semibold text-rose-700">
+                    {unreadCount} new
+                  </span>
+                )}
+              </div>
             )}
           </div>
           <div className="space-y-2">

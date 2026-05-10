@@ -4,6 +4,7 @@ import { ProfileActivities } from "@/components/ProfileActivities";
 import { FAB } from "@/components/FAB";
 import { getRequiredProfile } from "@/lib/current-user";
 import { createServiceClient } from "@/lib/supabase-server";
+import { getUnreadChatCounts } from "@/lib/chat-notifications";
 import type { ActivityWithAttendees } from "@/types/app";
 
 export default async function ProfilePage() {
@@ -31,6 +32,15 @@ export default async function ProfilePage() {
   const joinedActivities = (joinedData ?? [])
     .map((req: any) => req.activities)
     .filter(Boolean) as ActivityWithAttendees[];
+  const unreadCounts = Object.fromEntries(
+    [
+      ...(await getUnreadChatCounts(
+        supabase,
+        [...hostedActivities, ...joinedActivities].map((activity) => activity.id),
+        user.id
+      )),
+    ]
+  );
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -43,6 +53,7 @@ export default async function ProfilePage() {
           <ProfileActivities
             hostedActivities={hostedActivities}
             joinedActivities={joinedActivities}
+            unreadCounts={unreadCounts}
           />
         </div>
 

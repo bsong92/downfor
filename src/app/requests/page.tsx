@@ -8,6 +8,7 @@ import { getRequiredProfile } from "@/lib/current-user";
 import { getStoredLocationLabel, getStoredLocationTimezone } from "@/lib/location";
 import { formatInTimeZone, getDateLabelInTimeZone } from "@/lib/date-time";
 import { updateRequestStatus } from "@/app/actions";
+import { getUnreadChatCounts } from "@/lib/chat-notifications";
 import type { ActivityWithAttendees, ActivityWithPoster } from "@/types/app";
 import type { JoinRequest } from "@/types/database";
 
@@ -105,6 +106,15 @@ export default async function RequestsPage({
     (request) => Boolean(request.activities)
   );
   const hostedActivities = (hostedRes.data ?? []) as ActivityWithAttendees[];
+  const unreadCounts = Object.fromEntries(
+    [
+      ...(await getUnreadChatCounts(
+        supabase,
+        hostedActivities.map((activity) => activity.id),
+        user.id
+      )),
+    ]
+  );
   const visibleSentRequests =
     activeStatus === "all"
       ? sentRequests
@@ -412,6 +422,11 @@ export default async function RequestsPage({
                             <span className="rounded-full bg-white/90 px-3 py-1.5 text-xs font-semibold text-gray-900">
                               {c.emoji} {c.label}
                             </span>
+                            {((unreadCounts[activity.id] ?? 0) > 0) && (
+                              <span className="rounded-full bg-rose-100 px-3 py-1.5 text-xs font-semibold text-rose-700">
+                                {unreadCounts[activity.id]} unread
+                              </span>
+                            )}
                           </div>
                           <div className="absolute bottom-4 left-4 right-4">
                             <h3 className="font-display text-xl font-semibold text-white leading-tight line-clamp-2">

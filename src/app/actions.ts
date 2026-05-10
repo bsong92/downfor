@@ -7,6 +7,7 @@ import {
   encodeStoredLocation,
   resolveLocation,
 } from "@/lib/location";
+import { upsertChatReadCursor } from "@/lib/chat-notifications";
 import { revalidatePath } from "next/cache";
 
 async function fileToBuffer(file: File): Promise<Buffer> {
@@ -31,6 +32,14 @@ async function uploadChatAttachment(activityId: string, file: File) {
 
   const { data } = supabase.storage.from("profile-photos").getPublicUrl(path);
   return { url: data.publicUrl, path };
+}
+
+async function markChatRead(
+  supabase: ReturnType<typeof createServiceClient>,
+  activityId: string,
+  profileId: string
+) {
+  await upsertChatReadCursor(supabase, activityId, profileId);
 }
 
 export async function createActivity(data: {
@@ -170,9 +179,22 @@ export async function createActivityMessage(activityId: string, formData: FormDa
     attachment_url: attachmentUrl,
     attachment_path: attachmentPath,
   });
+  await markChatRead(supabase, activityId, user.id);
 
   revalidatePath(`/activity/${activityId}`);
   revalidatePath("/feed");
+}
+
+export async function markActivityChatRead(activityId: string): Promise<void> {
+  const supabase = createServiceClient();
+  const user = await getRequiredProfile();
+
+  await markChatRead(supabase, activityId, user.id);
+
+  revalidatePath(`/activity/${activityId}`);
+  revalidatePath("/feed");
+  revalidatePath("/requests");
+  revalidatePath("/profile");
 }
 
 export async function deleteActivityMessage(messageId: string, activityId: string): Promise<void> {
