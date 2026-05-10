@@ -206,24 +206,44 @@ export async function updateRequestStatus(
   activityId: string
 ): Promise<void> {
   const supabase = createServiceClient();
+  const user = await getRequiredProfile();
 
-  // Get current request status to check if we're revoking an approval
+  // Resolve the request and ensure it belongs to an activity owned by the caller.
+  const { data: request } = await supabase
+    .from("join_requests")
+    .select("status, activity_id")
+    .eq("id", requestId)
+    .maybeSingle();
+
+  const { data: activity } = await supabase
+    .from("activities")
+    .select("poster_id, spots_available")
+    .eq("id", activityId)
+    .maybeSingle();
+
+  if (!request || !activity || request.activity_id !== activityId) {
+    return;
+  }
+
+  if (activity.poster_id !== user.id) {
+    return;
+  }
+
+  // Get current request status to check if we're revoking an approval.
   const { data: currentRequest } = await supabase
     .from("join_requests")
     .select("status")
     .eq("id", requestId)
-    .single();
+    .maybeSingle();
+
+  if (!currentRequest) {
+    return;
+  }
 
   await supabase
     .from("join_requests")
     .update({ status, updated_at: new Date().toISOString() })
     .eq("id", requestId);
-
-  const { data: activity } = await supabase
-    .from("activities")
-    .select("spots_available")
-    .eq("id", activityId)
-    .single();
 
   if (status === "approved" && activity && activity.spots_available > 0) {
     // Approving a request: decrement spots
