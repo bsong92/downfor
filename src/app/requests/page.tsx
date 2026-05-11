@@ -7,7 +7,7 @@ import { createServiceClient } from "@/lib/supabase-server";
 import { getRequiredProfile } from "@/lib/current-user";
 import { getStoredLocationLabel, getStoredLocationTimezone } from "@/lib/location";
 import { formatInTimeZone, getDateLabelInTimeZone } from "@/lib/date-time";
-import { updateRequestStatus } from "@/app/actions";
+import { cancelJoinRequest, updateRequestStatus } from "@/app/actions";
 import { getUnreadChatCounts } from "@/lib/chat-notifications";
 import type { ActivityWithAttendees, ActivityWithPoster } from "@/types/app";
 import type { JoinRequest } from "@/types/database";
@@ -265,12 +265,10 @@ export default async function RequestsPage({
                   const dateLabel = getDateLabelInTimeZone(activity.activity_date, timeZone);
 
                   return (
-                    <Link
+                    <article
                       key={request.id}
-                      href={`/activity/${activity.id}`}
-                      className="block group"
+                      className="overflow-hidden rounded-[28px] border border-gray-200 bg-white transition-all hover:border-indigo-300 hover:shadow-[0_20px_60px_rgba(79,70,229,0.12)] group"
                     >
-                      <article className="overflow-hidden rounded-[28px] border border-gray-200 bg-white transition-all hover:border-indigo-300 hover:shadow-[0_20px_60px_rgba(79,70,229,0.12)]">
                         <div className={`relative h-44 ${gradientClass}`}>
                           {activity.image_url && (
                             // eslint-disable-next-line @next/next/no-img-element
@@ -338,13 +336,28 @@ export default async function RequestsPage({
                                 {getRequestNote(request.status, activity.poster.name)}
                               </p>
                             </div>
-                            <span className="text-sm font-semibold text-indigo-600 group-hover:translate-x-0.5 transition-transform">
+                            <Link
+                              href={`/activity/${activity.id}`}
+                              className="text-sm font-semibold text-indigo-600 group-hover:translate-x-0.5 transition-transform"
+                            >
                               View activity →
-                            </span>
+                            </Link>
                           </div>
+
+                          {request.status === "pending" && (
+                            <div className="flex justify-end pt-1">
+                              <form action={cancelJoinRequest.bind(null, activity.id)}>
+                                <button
+                                  type="submit"
+                                  className="rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 hover:border-rose-300 hover:bg-rose-50 hover:text-rose-700 transition-colors"
+                                >
+                                  Cancel request
+                                </button>
+                              </form>
+                            </div>
+                          )}
                         </div>
                       </article>
-                    </Link>
                   );
                 })}
               </div>

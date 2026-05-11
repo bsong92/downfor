@@ -8,6 +8,7 @@ import { getRequiredProfile } from "@/lib/current-user";
 import {
   createActivityMessage,
   createJoinRequest,
+  cancelJoinRequest,
   deleteActivityMessage,
   updateRequestStatus,
 } from "@/app/actions";
@@ -253,12 +254,26 @@ export default async function ActivityDetailPage({
           <div className="mb-6">
             {myRequest ? (
               <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 text-sm text-green-700 font-medium text-center">
-                ✓ Request sent —{" "}
-                {myRequest.status === "pending"
-                  ? `${activity.poster.name} will review it`
-                  : myRequest.status === "approved"
-                    ? "you're in!"
-                    : "request was declined"}
+                <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center sm:gap-4">
+                  <span>
+                    ✓ Request sent —{" "}
+                    {myRequest.status === "pending"
+                      ? `${activity.poster.name} will review it`
+                      : myRequest.status === "approved"
+                        ? "you’re in!"
+                        : "request was declined"}
+                  </span>
+                  {myRequest.status === "pending" && (
+                    <form action={cancelJoinRequest.bind(null, id)}>
+                      <button
+                        type="submit"
+                        className="rounded-full border border-green-300 bg-white px-3 py-1.5 text-xs font-semibold text-green-700 hover:bg-green-100 transition-colors"
+                      >
+                        Cancel request
+                      </button>
+                    </form>
+                  )}
+                </div>
               </div>
             ) : (
               <form action={createJoinRequest.bind(null, id)}>

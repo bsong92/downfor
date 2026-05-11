@@ -139,6 +139,30 @@ export async function createJoinRequest(activityId: string): Promise<void> {
   revalidatePath("/requests");
 }
 
+export async function cancelJoinRequest(activityId: string): Promise<void> {
+  const supabase = createServiceClient();
+  const user = await getRequiredProfile();
+
+  const { data: request } = await supabase
+    .from("join_requests")
+    .select("id, status")
+    .eq("activity_id", activityId)
+    .eq("requester_id", user.id)
+    .maybeSingle();
+
+  if (!request || request.status !== "pending") {
+    return;
+  }
+
+  await supabase
+    .from("join_requests")
+    .delete()
+    .eq("id", request.id);
+
+  revalidatePath(`/activity/${activityId}`);
+  revalidatePath("/requests");
+}
+
 export async function createActivityMessage(activityId: string, formData: FormData): Promise<void> {
   const supabase = createServiceClient();
   const user = await getRequiredProfile();
