@@ -9,6 +9,7 @@ import {
 } from "@/lib/location";
 import { upsertChatReadCursor } from "@/lib/chat-notifications";
 import {
+  sendNewJoinRequestNotification,
   sendChatMessageNotifications,
   sendRequestStatusNotification,
 } from "@/lib/email-notifications";
@@ -129,6 +130,10 @@ export async function createJoinRequest(activityId: string): Promise<void> {
   await supabase.from("join_requests").insert({
     activity_id: activityId,
     requester_id: user.id,
+  });
+  void sendNewJoinRequestNotification(supabase, {
+    activityId,
+    requesterId: user.id,
   });
   revalidatePath(`/activity/${activityId}`);
   revalidatePath("/requests");

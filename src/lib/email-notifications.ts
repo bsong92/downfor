@@ -65,6 +65,44 @@ export async function sendRequestStatusNotification(
   });
 }
 
+export async function sendNewJoinRequestNotification(
+  supabase: SupabaseClient,
+  input: { activityId: string; requesterId: string }
+) {
+  const { data: activity } = await supabase
+    .from("activities")
+    .select(
+      "id, title, poster:profiles!poster_id(id, name, email, email_notifications_requests)"
+    )
+    .eq("id", input.activityId)
+    .maybeSingle();
+
+  if (!activity) return;
+
+  const posterRaw = Array.isArray(activity.poster) ? activity.poster[0] : activity.poster;
+  const poster = posterRaw as NotificationProfile | undefined;
+
+  if (!poster || !poster.email_notifications_requests) {
+    return;
+  }
+
+  if (poster.id === input.requesterId) {
+    return;
+  }
+
+  const subject = `New request for ${activity.title}`;
+  const text = [
+    `Someone requested to join "${activity.title}".`,
+    `Open the activity: ${buildActivityUrl(activity.id)}`,
+  ].join("\n\n");
+
+  await sendEmail({
+    to: poster.email,
+    subject,
+    text,
+  });
+}
+
 export async function sendChatMessageNotifications(
   supabase: SupabaseClient,
   input: { activityId: string; senderId: string; body: string }

@@ -353,7 +353,8 @@ export function ProfileClient({ initialUser }: { initialUser: Profile }) {
                   <div>
                     <p className="text-sm font-medium text-gray-900">Request updates</p>
                     <p className="text-xs text-gray-500">
-                      Send an email when your join request is approved or declined.
+                      Send an email when someone requests to join your activity, or when
+                      your request is approved or declined.
                     </p>
                   </div>
                 </label>
