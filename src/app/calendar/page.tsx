@@ -15,6 +15,14 @@ type CalendarCell = {
   activities: ActivityWithAttendees[];
 };
 
+type MonthKey = {
+  year: number;
+  month: number;
+};
+
+const MIN_MONTH = { year: 2026, month: 0 };
+const MAX_MONTH = { year: 2026, month: 11 };
+
 function getDateKeyFromDate(date: Date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(
     date.getDate()
@@ -25,6 +33,52 @@ function getMonthLabel(date: Date) {
   return date.toLocaleDateString("en-US", {
     month: "long",
     year: "numeric",
+  });
+}
+
+function getMonthKey(date: Date): MonthKey {
+  return {
+    year: date.getFullYear(),
+    month: date.getMonth(),
+  };
+}
+
+function monthKeyToString(month: MonthKey) {
+  return `${month.year}-${String(month.month + 1).padStart(2, "0")}`;
+}
+
+function clampMonth(month: MonthKey) {
+  if (month.year < MIN_MONTH.year || (month.year === MIN_MONTH.year && month.month < MIN_MONTH.month)) {
+    return MIN_MONTH;
+  }
+  if (month.year > MAX_MONTH.year || (month.year === MAX_MONTH.year && month.month > MAX_MONTH.month)) {
+    return MAX_MONTH;
+  }
+  return month;
+}
+
+function parseMonthParam(value?: string | string[] | null) {
+  const raw = Array.isArray(value) ? value[0] : value;
+  if (!raw) return null;
+
+  const match = raw.match(/^(\d{4})-(\d{2})$/);
+  if (!match) return null;
+
+  const year = Number(match[1]);
+  const month = Number(match[2]) - 1;
+  if (Number.isNaN(year) || Number.isNaN(month)) return null;
+
+  return clampMonth({ year, month });
+}
+
+function monthToDate(month: MonthKey) {
+  return new Date(month.year, month.month, 1);
+}
+
+function shiftMonth(month: MonthKey, offset: number) {
+  return clampMonth({
+    year: month.year + Math.floor((month.month + offset) / 12),
+    month: ((month.month + offset) % 12 + 12) % 12,
   });
 }
 
@@ -72,10 +126,21 @@ function formatCalendarTime(activityDate: string, timeZone: string | null) {
   });
 }
 
-export default async function CalendarPage() {
+export default async function CalendarPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ month?: string | string[] }>;
+}) {
   const supabase = createServiceClient();
   const now = new Date();
-  const monthStart = startOfMonth(now);
+  const resolvedSearchParams = await Promise.resolve(searchParams);
+  const requestedMonth = parseMonthParam(resolvedSearchParams?.month);
+  const selectedMonth = requestedMonth ?? clampMonth(getMonthKey(now));
+  const monthStart = startOfMonth(monthToDate(selectedMonth));
+  const prevMonth = shiftMonth(selectedMonth, -1);
+  const nextMonth = shiftMonth(selectedMonth, 1);
+  const canGoPrev = monthKeyToString(selectedMonth) !== monthKeyToString(MIN_MONTH);
+  const canGoNext = monthKeyToString(selectedMonth) !== monthKeyToString(MAX_MONTH);
 
   const { data } = await supabase
     .from("activities")
@@ -128,8 +193,44 @@ export default async function CalendarPage() {
                   {getMonthLabel(monthStart)}
                 </h2>
               </div>
-              <div className="text-sm text-gray-500">
-                {upcomingActivities.length} upcoming activities
+              <div className="flex items-center gap-3">
+                <div className="text-sm text-gray-500">
+                  {upcomingActivities.length} upcoming activities
+                </div>
+                <div className="flex items-center gap-1 rounded-full border border-gray-200 bg-white p-1">
+                  {canGoPrev ? (
+                    <Link
+                      href={`/calendar?month=${monthKeyToString(prevMonth)}`}
+                      className="rounded-full px-3 py-1.5 text-sm font-semibold text-gray-700 hover:bg-gray-100 transition-colors"
+                      aria-label="Previous month"
+                    >
+                      ←
+                    </Link>
+                  ) : (
+                    <span
+                      className="rounded-full px-3 py-1.5 text-sm font-semibold text-gray-300"
+                      aria-label="Previous month"
+                    >
+                      ←
+                    </span>
+                  )}
+                  {canGoNext ? (
+                    <Link
+                      href={`/calendar?month=${monthKeyToString(nextMonth)}`}
+                      className="rounded-full px-3 py-1.5 text-sm font-semibold text-gray-700 hover:bg-gray-100 transition-colors"
+                      aria-label="Next month"
+                    >
+                      →
+                    </Link>
+                  ) : (
+                    <span
+                      className="rounded-full px-3 py-1.5 text-sm font-semibold text-gray-300"
+                      aria-label="Next month"
+                    >
+                      →
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
 
