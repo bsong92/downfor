@@ -22,6 +22,13 @@ type MonthKey = {
 
 const MIN_MONTH = { year: 2026, month: 0 };
 const MAX_MONTH = { year: 2026, month: 11 };
+const MONTH_OPTIONS = Array.from({ length: 12 }, (_, month) => ({
+  value: `2026-${String(month + 1).padStart(2, "0")}`,
+  label: new Date(2026, month, 1).toLocaleDateString("en-US", {
+    month: "long",
+    year: "numeric",
+  }),
+}));
 
 function getDateKeyFromDate(date: Date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(
@@ -230,6 +237,26 @@ export default async function CalendarPage({
                       →
                     </span>
                   )}
+                </div>
+                <div className="min-w-[12rem]">
+                  <label className="sr-only" htmlFor="calendar-month">
+                    Select month
+                  </label>
+                  <select
+                    id="calendar-month"
+                    value={monthKeyToString(selectedMonth)}
+                    onChange={(e) => {
+                      const next = e.target.value;
+                      window.location.href = `/calendar?month=${next}`;
+                    }}
+                    className="w-full rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm outline-none transition-colors hover:border-indigo-300 focus:border-indigo-400"
+                  >
+                    {MONTH_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
             </div>
