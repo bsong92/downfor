@@ -4,12 +4,13 @@ import { WeatherDisplay } from "@/components/WeatherDisplay";
 import { ActivityChatReadTracker } from "@/components/ActivityChatReadTracker";
 import { CopyLinkButton } from "@/components/CopyLinkButton";
 import { CancelJoinRequestButton } from "@/components/CancelJoinRequestButton";
+import { DeleteMessageButton } from "@/components/DeleteMessageButton";
+import { RequestStatusButton } from "@/components/RequestStatusButton";
 import { createServiceClient } from "@/lib/supabase-server";
 import { getRequiredProfile } from "@/lib/current-user";
 import {
   createActivityMessage,
   createJoinRequest,
-  deleteActivityMessage,
   updateRequestStatus,
 } from "@/app/actions";
 import { getStoredLocationLabel, getStoredLocationTimezone } from "@/lib/location";
@@ -376,17 +377,12 @@ export default async function ActivityDetailPage({
                                 })}
                               </p>
                               {isMine && (
-                                <form
-                                  action={deleteActivityMessage.bind(null, message.id, id)}
-                                >
-                                  <button
-                                    type="submit"
-                                    className="rounded-full border border-white/30 px-2 py-1 text-[11px] font-semibold hover:bg-white/10 transition-colors"
-                                    aria-label="Delete message"
-                                  >
-                                    Delete
-                                  </button>
-                                </form>
+                                <DeleteMessageButton
+                                  messageId={message.id}
+                                  activityId={id}
+                                  label="Delete"
+                                  className="rounded-full border border-white/30 px-2 py-1 text-[11px] font-semibold hover:bg-white/10 transition-colors"
+                                />
                               )}
                             </div>
                           </div>
@@ -503,16 +499,14 @@ export default async function ActivityDetailPage({
                           Approve
                         </button>
                       </form>
-                      <form
-                        action={updateRequestStatus.bind(null, req.id, "declined", id)}
-                      >
-                        <button
-                          type="submit"
-                          className="px-3 py-1.5 bg-gray-100 text-gray-600 text-xs font-semibold rounded-lg hover:bg-gray-200 transition-colors"
-                        >
-                          Decline
-                        </button>
-                      </form>
+                      <RequestStatusButton
+                        requestId={req.id}
+                        activityId={id}
+                        status="declined"
+                        label="Decline"
+                        confirmMessage="Decline this request?"
+                        className="px-3 py-1.5 bg-gray-100 text-gray-600 text-xs font-semibold rounded-lg hover:bg-gray-200 transition-colors"
+                      />
                     </div>
                   </div>
                 ))}
@@ -550,16 +544,14 @@ export default async function ActivityDetailPage({
                         {req.status}
                       </span>
                       {req.status === "approved" && (
-                        <form
-                          action={updateRequestStatus.bind(null, req.id, "declined", id)}
-                        >
-                          <button
-                            type="submit"
-                            className="px-2.5 py-1 bg-gray-100 text-gray-600 text-xs font-semibold rounded-lg hover:bg-gray-200 transition-colors"
-                          >
-                            Revoke
-                          </button>
-                        </form>
+                        <RequestStatusButton
+                          requestId={req.id}
+                          activityId={id}
+                          status="declined"
+                          label="Revoke"
+                          confirmMessage="Revoke this approval and restore the spot?"
+                          className="px-2.5 py-1 bg-gray-100 text-gray-600 text-xs font-semibold rounded-lg hover:bg-gray-200 transition-colors"
+                        />
                       )}
                     </div>
                   </div>

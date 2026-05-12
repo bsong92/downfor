@@ -10,6 +10,7 @@ import { formatInTimeZone, getDateLabelInTimeZone } from "@/lib/date-time";
 import { updateRequestStatus } from "@/app/actions";
 import { getUnreadChatCounts } from "@/lib/chat-notifications";
 import { CancelJoinRequestButton } from "@/components/CancelJoinRequestButton";
+import { RequestStatusButton } from "@/components/RequestStatusButton";
 import type { ActivityWithAttendees, ActivityWithPoster } from "@/types/app";
 import type { JoinRequest } from "@/types/database";
 
@@ -559,38 +560,24 @@ export default async function RequestsPage({
                                                 Approve
                                               </button>
                                             </form>
-                                            <form
-                                              action={updateRequestStatus.bind(
-                                                null,
-                                                request.id,
-                                                "declined",
-                                                activity.id
-                                              )}
-                                            >
-                                              <button
-                                                type="submit"
+                                            <RequestStatusButton
+                                              requestId={request.id}
+                                              activityId={activity.id}
+                                              status="declined"
+                                              label="Decline"
+                                              confirmMessage="Decline this request?"
                                               className="rounded-lg bg-gray-100 px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-200 transition-colors"
-                                            >
-                                              Decline
-                                            </button>
-                                          </form>
+                                            />
                                         </>
                                       ) : request.status === "approved" ? (
-                                          <form
-                                            action={updateRequestStatus.bind(
-                                              null,
-                                              request.id,
-                                              "declined",
-                                              activity.id
-                                            )}
-                                          >
-                                            <button
-                                              type="submit"
-                                              className="rounded-lg bg-gray-100 px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-200 transition-colors"
-                                            >
-                                              Revoke
-                                            </button>
-                                          </form>
+                                          <RequestStatusButton
+                                            requestId={request.id}
+                                            activityId={activity.id}
+                                            status="declined"
+                                            label="Revoke"
+                                            confirmMessage="Revoke this approval and restore the spot?"
+                                            className="rounded-lg bg-gray-100 px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-200 transition-colors"
+                                          />
                                         ) : (
                                           <form
                                             action={updateRequestStatus.bind(

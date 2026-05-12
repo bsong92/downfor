@@ -2,15 +2,17 @@
 
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
-import { cancelJoinRequest } from "@/app/actions";
+import { deleteActivityMessage } from "@/app/actions";
 import { useToast } from "@/context/ToastContext";
 
-export function CancelJoinRequestButton({
+export function DeleteMessageButton({
+  messageId,
   activityId,
   className = "",
-  label = "Cancel request",
-  confirmMessage = "Cancel this request?",
+  label = "Delete",
+  confirmMessage = "Delete this message?",
 }: {
+  messageId: string;
   activityId: string;
   className?: string;
   label?: string;
@@ -20,11 +22,12 @@ export function CancelJoinRequestButton({
   const [isPending, startTransition] = useTransition();
   const { pushToast } = useToast();
 
-  function handleCancel() {
+  function handleDelete() {
     if (!window.confirm(confirmMessage)) return;
+
     startTransition(async () => {
-      await cancelJoinRequest(activityId);
-      pushToast({ title: "Request canceled" });
+      await deleteActivityMessage(messageId, activityId);
+      pushToast({ title: "Message deleted" });
       router.refresh();
     });
   }
@@ -32,11 +35,11 @@ export function CancelJoinRequestButton({
   return (
     <button
       type="button"
-      onClick={handleCancel}
+      onClick={handleDelete}
       disabled={isPending}
       className={className}
     >
-      {isPending ? "Canceling..." : label}
+      {isPending ? "Deleting..." : label}
     </button>
   );
 }
