@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useToast } from "@/context/ToastContext";
 
 export function CopyLinkButton({
   href,
@@ -10,11 +11,13 @@ export function CopyLinkButton({
   className?: string;
 }) {
   const [copied, setCopied] = useState(false);
+  const { pushToast } = useToast();
 
   async function handleCopy() {
     const url = new URL(href, window.location.origin).toString();
     await navigator.clipboard.writeText(url);
     setCopied(true);
+    pushToast({ title: "Link copied" });
     window.setTimeout(() => setCopied(false), 1800);
   }
 

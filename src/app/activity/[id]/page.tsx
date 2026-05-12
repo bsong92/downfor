@@ -3,12 +3,12 @@ import { getCategoryGradient, getCategoryConfig } from "@/components/CategoryBad
 import { WeatherDisplay } from "@/components/WeatherDisplay";
 import { ActivityChatReadTracker } from "@/components/ActivityChatReadTracker";
 import { CopyLinkButton } from "@/components/CopyLinkButton";
+import { CancelJoinRequestButton } from "@/components/CancelJoinRequestButton";
 import { createServiceClient } from "@/lib/supabase-server";
 import { getRequiredProfile } from "@/lib/current-user";
 import {
   createActivityMessage,
   createJoinRequest,
-  cancelJoinRequest,
   deleteActivityMessage,
   updateRequestStatus,
 } from "@/app/actions";
@@ -254,7 +254,7 @@ export default async function ActivityDetailPage({
           <div className="mb-6">
             {myRequest ? (
               <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 text-sm text-green-700 font-medium text-center">
-                <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center sm:gap-4">
+              <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center sm:gap-4">
                   <span>
                     ✓ Request sent —{" "}
                     {myRequest.status === "pending"
@@ -264,14 +264,11 @@ export default async function ActivityDetailPage({
                         : "request was declined"}
                   </span>
                   {myRequest.status === "pending" && (
-                    <form action={cancelJoinRequest.bind(null, id)}>
-                      <button
-                        type="submit"
-                        className="rounded-full border border-green-300 bg-white px-3 py-1.5 text-xs font-semibold text-green-700 hover:bg-green-100 transition-colors"
-                      >
-                        Cancel request
-                      </button>
-                    </form>
+                    <CancelJoinRequestButton
+                      activityId={id}
+                      label="Cancel request"
+                      className="rounded-full border border-green-300 bg-white px-3 py-1.5 text-xs font-semibold text-green-700 hover:bg-green-100 transition-colors"
+                    />
                   )}
                 </div>
               </div>

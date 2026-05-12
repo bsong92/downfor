@@ -7,8 +7,9 @@ import { createServiceClient } from "@/lib/supabase-server";
 import { getRequiredProfile } from "@/lib/current-user";
 import { getStoredLocationLabel, getStoredLocationTimezone } from "@/lib/location";
 import { formatInTimeZone, getDateLabelInTimeZone } from "@/lib/date-time";
-import { cancelJoinRequest, updateRequestStatus } from "@/app/actions";
+import { updateRequestStatus } from "@/app/actions";
 import { getUnreadChatCounts } from "@/lib/chat-notifications";
+import { CancelJoinRequestButton } from "@/components/CancelJoinRequestButton";
 import type { ActivityWithAttendees, ActivityWithPoster } from "@/types/app";
 import type { JoinRequest } from "@/types/database";
 
@@ -346,14 +347,11 @@ export default async function RequestsPage({
 
                           {request.status === "pending" && (
                             <div className="flex justify-end pt-1">
-                              <form action={cancelJoinRequest.bind(null, activity.id)}>
-                                <button
-                                  type="submit"
-                                  className="rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 hover:border-rose-300 hover:bg-rose-50 hover:text-rose-700 transition-colors"
-                                >
-                                  Cancel request
-                                </button>
-                              </form>
+                              <CancelJoinRequestButton
+                                activityId={activity.id}
+                                label="Cancel request"
+                                className="rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 hover:border-rose-300 hover:bg-rose-50 hover:text-rose-700 transition-colors"
+                              />
                             </div>
                           )}
                         </div>

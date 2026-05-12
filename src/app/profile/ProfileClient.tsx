@@ -5,6 +5,7 @@ import { CATEGORIES } from "@/types/database";
 import type { Profile } from "@/types/database";
 import { getCategoryConfig } from "@/components/CategoryBadge";
 import { updateProfile, uploadProfilePhoto } from "@/app/actions";
+import { useToast } from "@/context/ToastContext";
 
 const STORAGE_KEY = "profile-draft";
 
@@ -35,6 +36,7 @@ export function ProfileClient({ initialUser }: { initialUser: Profile }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [customInterestInput, setCustomInterestInput] = useState("");
   const [form, setForm] = useState(defaultForm);
+  const { pushToast } = useToast();
 
   // Load draft from localStorage on mount
   useEffect(() => {
@@ -123,6 +125,7 @@ export function ProfileClient({ initialUser }: { initialUser: Profile }) {
     if (result.success) {
       localStorage.removeItem(STORAGE_KEY);
       setIsEditing(false);
+      pushToast({ title: "Profile saved" });
     } else {
       setError(result.error ?? "Unable to update profile.");
     }
