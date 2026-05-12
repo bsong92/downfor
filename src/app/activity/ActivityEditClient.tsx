@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CATEGORIES } from "@/types/database";
-import { updateActivity } from "@/app/actions";
+import { updateActivity, uploadActivityPhoto } from "@/app/actions";
 import { CategoryBadge, normalizeCategory } from "@/components/CategoryBadge";
 import { LocationAutocomplete } from "@/components/LocationAutocomplete";
 import {
@@ -17,6 +17,8 @@ export function ActivityEditClient({ activity }: { activity: ActivityWithPoster 
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const activityDate = new Date(activity.activity_date);
   const dateStr = activityDate.toISOString().split("T")[0];
@@ -37,6 +39,7 @@ export function ActivityEditClient({ activity }: { activity: ActivityWithPoster 
     spots: activity.spots_available.toString(),
     is_outdoor: activity.is_outdoor ?? true,
   });
+  const [coverPhotoUrl, setCoverPhotoUrl] = useState(activity.image_url || "");
   const [timeZone, setTimeZone] = useState(storedTimeZone ?? "America/Chicago");
 
   useEffect(() => {
@@ -53,12 +56,31 @@ export function ActivityEditClient({ activity }: { activity: ActivityWithPoster 
     setForm((prev) => ({ ...prev, [field]: value }));
   }
 
+  async function handlePhotoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingPhoto(true);
+    setError(null);
+
+    const result = await uploadActivityPhoto(file);
+    if (result.success && result.photoUrl) {
+      setCoverPhotoUrl(result.photoUrl);
+    } else {
+      setError(result.error ?? "Unable to upload photo.");
+    }
+
+    setUploadingPhoto(false);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+
   async function handleSave() {
     setLoading(true);
     setError(null);
 
     const result = await updateActivity(activity.id, {
       ...form,
+      image_url: coverPhotoUrl || undefined,
       locationTimezone: form.locationTimezone || timeZone,
     });
 
@@ -148,6 +170,36 @@ export function ActivityEditClient({ activity }: { activity: ActivityWithPoster 
               onChange={(e) => set("description", e.target.value)}
               placeholder="Tell people what this activity is about..."
               className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent resize-none"
+            />
+          </div>
+
+          {/* Photo */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Photo <span className="text-gray-400 font-normal">optional</span>
+            </label>
+            <div className="flex items-center gap-3">
+              {coverPhotoUrl && (
+                <div className="h-14 w-14 overflow-hidden rounded-xl border border-gray-200">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={coverPhotoUrl} alt="Activity cover" className="h-full w-full object-cover" />
+                </div>
+              )}
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploadingPhoto}
+                className="rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 disabled:opacity-50"
+              >
+                {uploadingPhoto ? "Uploading..." : coverPhotoUrl ? "Change photo" : "Add photo"}
+              </button>
+            </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handlePhotoUpload}
+              className="hidden"
             />
           </div>
 

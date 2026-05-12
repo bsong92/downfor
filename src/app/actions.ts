@@ -139,6 +139,28 @@ export async function createJoinRequest(activityId: string): Promise<void> {
   revalidatePath("/requests");
 }
 
+export async function deleteActivity(activityId: string): Promise<void> {
+  const supabase = createServiceClient();
+  const user = await getRequiredProfile();
+
+  const { data: activity } = await supabase
+    .from("activities")
+    .select("poster_id")
+    .eq("id", activityId)
+    .maybeSingle();
+
+  if (!activity || activity.poster_id !== user.id) {
+    return;
+  }
+
+  await supabase.from("activities").delete().eq("id", activityId);
+
+  revalidatePath("/feed");
+  revalidatePath("/requests");
+  revalidatePath("/profile");
+  revalidatePath("/calendar");
+}
+
 export async function cancelJoinRequest(activityId: string): Promise<void> {
   const supabase = createServiceClient();
   const user = await getRequiredProfile();
@@ -368,6 +390,7 @@ export async function updateActivity(activityId: string, data: {
   location: string;
   spots: string;
   is_outdoor?: boolean;
+  image_url?: string;
   locationLatitude?: number | null;
   locationLongitude?: number | null;
   locationTimezone?: string | null;
@@ -412,6 +435,7 @@ export async function updateActivity(activityId: string, data: {
       activity_date: activityDateIso,
       location: storedLocation,
       spots_available: parseInt(data.spots, 10),
+      image_url: data.image_url ?? null,
       updated_at: new Date().toISOString(),
     };
 
