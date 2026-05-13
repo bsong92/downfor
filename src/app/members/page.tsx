@@ -44,7 +44,7 @@ export default async function MembersPage() {
             {publicMembers.map((member) => (
               <Link
                 key={member.id}
-                href={`/`}
+                href={`/members/${member.id}`}
                 className="bg-white/85 backdrop-blur rounded-[28px] border border-gray-200/80 p-5 hover:border-indigo-300 hover:shadow-[0_20px_60px_rgba(79,70,229,0.12)] transition-all group"
               >
                 {/* Avatar */}

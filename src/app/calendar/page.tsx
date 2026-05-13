@@ -7,6 +7,7 @@ import { createServiceClient } from "@/lib/supabase-server";
 import { formatInTimeZone, getDateKeyInTimeZone, getDateLabelInTimeZone } from "@/lib/date-time";
 import { getStoredLocationLabel, getStoredLocationTimezone } from "@/lib/location";
 import type { ActivityWithAttendees } from "@/types/app";
+import { CalendarControls } from "./CalendarControls";
 
 type CalendarCell = {
   date: Date;
@@ -200,65 +201,15 @@ export default async function CalendarPage({
                   {getMonthLabel(monthStart)}
                 </h2>
               </div>
-              <div className="flex items-center gap-3">
-                <div className="text-sm text-gray-500">
-                  {upcomingActivities.length} upcoming activities
-                </div>
-                <div className="flex items-center gap-1 rounded-full border border-gray-200 bg-white p-1">
-                  {canGoPrev ? (
-                    <Link
-                      href={`/calendar?month=${monthKeyToString(prevMonth)}`}
-                      className="rounded-full px-3 py-1.5 text-sm font-semibold text-gray-700 hover:bg-gray-100 transition-colors"
-                      aria-label="Previous month"
-                    >
-                      ←
-                    </Link>
-                  ) : (
-                    <span
-                      className="rounded-full px-3 py-1.5 text-sm font-semibold text-gray-300"
-                      aria-label="Previous month"
-                    >
-                      ←
-                    </span>
-                  )}
-                  {canGoNext ? (
-                    <Link
-                      href={`/calendar?month=${monthKeyToString(nextMonth)}`}
-                      className="rounded-full px-3 py-1.5 text-sm font-semibold text-gray-700 hover:bg-gray-100 transition-colors"
-                      aria-label="Next month"
-                    >
-                      →
-                    </Link>
-                  ) : (
-                    <span
-                      className="rounded-full px-3 py-1.5 text-sm font-semibold text-gray-300"
-                      aria-label="Next month"
-                    >
-                      →
-                    </span>
-                  )}
-                </div>
-                <div className="min-w-[12rem]">
-                  <label className="sr-only" htmlFor="calendar-month">
-                    Select month
-                  </label>
-                  <select
-                    id="calendar-month"
-                    value={monthKeyToString(selectedMonth)}
-                    onChange={(e) => {
-                      const next = e.target.value;
-                      window.location.href = `/calendar?month=${next}`;
-                    }}
-                    className="w-full rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm outline-none transition-colors hover:border-indigo-300 focus:border-indigo-400"
-                  >
-                    {MONTH_OPTIONS.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
+              <CalendarControls
+                selectedMonth={selectedMonth}
+                prevMonth={prevMonth}
+                nextMonth={nextMonth}
+                canGoPrev={canGoPrev}
+                canGoNext={canGoNext}
+                upcomingCount={upcomingActivities.length}
+                monthOptions={MONTH_OPTIONS}
+              />
             </div>
 
             <div className="grid grid-cols-7 gap-3 mb-3 text-[11px] font-semibold uppercase tracking-[0.22em] text-gray-400">
