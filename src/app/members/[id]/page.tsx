@@ -2,7 +2,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { Navbar } from "@/components/Navbar";
-import { ActivityCard } from "@/components/ActivityCard";
+import { getCategoryConfig } from "@/components/CategoryBadge";
+import { getStoredLocationLabel, getStoredLocationTimezone } from "@/lib/location";
+import { formatInTimeZone, getDateLabelInTimeZone } from "@/lib/date-time";
 import { createServiceClient } from "@/lib/supabase-server";
 import type { ActivityWithAttendees } from "@/types/app";
 import type { Profile } from "@/types/database";
@@ -38,6 +40,7 @@ export default async function MemberProfilePage({
     .order("activity_date", { ascending: true });
 
   const hostedActivities = (hostedData ?? []) as ActivityWithAttendees[];
+  const now = new Date();
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -121,7 +124,61 @@ export default async function MemberProfilePage({
           ) : (
             <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
               {hostedActivities.map((activity) => (
-                <ActivityCard key={activity.id} activity={activity} />
+                <Link
+                  key={activity.id}
+                  href={`/activity/${activity.id}`}
+                  className="block overflow-hidden rounded-[28px] border border-gray-200 bg-white transition-all hover:border-indigo-300 hover:shadow-[0_20px_60px_rgba(79,70,229,0.12)]"
+                >
+                  <div className={`relative h-40 bg-gradient-to-br ${activity.image_url ? "" : "from-indigo-600 to-cyan-400"}`}>
+                    {activity.image_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={activity.image_url}
+                        alt={activity.title}
+                        className="absolute inset-0 h-full w-full object-cover"
+                      />
+                    ) : (
+                      <div className="absolute inset-0 bg-gradient-to-br from-indigo-600 to-cyan-400" />
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/15 to-transparent" />
+                    <div className="absolute bottom-4 left-4 right-4">
+                      <span className="inline-flex items-center rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-gray-900">
+                        {getCategoryConfig(activity.category).emoji} {getCategoryConfig(activity.category).label}
+                      </span>
+                      <h3 className="mt-3 font-display text-xl font-semibold text-white leading-tight line-clamp-2">
+                        {activity.title}
+                      </h3>
+                    </div>
+                  </div>
+
+                  <div className="p-5 space-y-3">
+                    <div className="flex items-center justify-between gap-3 text-sm text-gray-600">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span>📅</span>
+                        <span>{getDateLabelInTimeZone(activity.activity_date, getStoredLocationTimezone(activity.location), now)}</span>
+                        <span className="text-gray-300">•</span>
+                        <span>{formatInTimeZone(activity.activity_date, getStoredLocationTimezone(activity.location), {
+                          hour: "numeric",
+                          minute: "2-digit",
+                        })}</span>
+                      </div>
+                      <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-700">
+                        {activity.spots_available} spots left
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2 text-sm text-gray-600 min-w-0">
+                      <span>📍</span>
+                      <span className="truncate">{getStoredLocationLabel(activity.location)}</span>
+                    </div>
+
+                    {activity.description && (
+                      <p className="text-sm text-gray-600 leading-6 line-clamp-2">
+                        {activity.description}
+                      </p>
+                    )}
+                  </div>
+                </Link>
               ))}
             </div>
           )}
