@@ -124,6 +124,14 @@ export function NotificationBell() {
                   </Link>
                   );
                 })}
+                {unreadNotifications.length === 0 && (
+                  <div className="rounded-2xl border border-dashed border-gray-200 bg-gray-50 px-4 py-5 text-center">
+                    <p className="text-sm font-semibold text-gray-900">You&apos;re caught up</p>
+                    <p className="mt-1 text-sm text-gray-500">
+                      New requests, approvals, and messages will show up here.
+                    </p>
+                  </div>
+                )}
               </div>
             )}
           </div>

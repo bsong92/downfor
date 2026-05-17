@@ -63,11 +63,11 @@ export default async function MemberProfilePage({
         </div>
 
         <section className="overflow-hidden rounded-[32px] border border-gray-200/80 bg-white/90 backdrop-blur shadow-[0_18px_60px_rgba(15,23,42,0.05)]">
-          <div className="relative h-44 bg-gradient-to-br from-indigo-600 via-violet-500 to-cyan-400">
+          <div className="relative h-52 bg-gradient-to-br from-indigo-600 via-violet-500 to-cyan-400">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.18),transparent_28%),radial-gradient(circle_at_bottom_left,rgba(255,255,255,0.12),transparent_26%)]" />
             <div className="absolute bottom-4 left-6 right-6 flex items-end justify-between gap-4">
               <div className="flex items-center gap-4">
-                <div className="w-24 h-24 rounded-[28px] border-4 border-white/90 bg-white/20 backdrop-blur-sm flex items-center justify-center text-4xl font-semibold text-white overflow-hidden flex-shrink-0 shadow-lg">
+                <div className="w-28 h-28 rounded-[32px] border-4 border-white/90 bg-white/20 backdrop-blur-sm flex items-center justify-center text-4xl font-semibold text-white overflow-hidden flex-shrink-0 shadow-lg">
                   {profile.photo_url ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={profile.photo_url} alt={profile.name} className="w-full h-full object-cover" />
@@ -82,6 +82,11 @@ export default async function MemberProfilePage({
                   <h1 className="font-display text-4xl md:text-5xl font-semibold text-white leading-tight">
                     {profile.name}
                   </h1>
+                  {profile.bio && (
+                    <p className="mt-3 max-w-2xl text-sm md:text-base text-white/85 leading-6 line-clamp-2">
+                      {profile.bio}
+                    </p>
+                  )}
                 </div>
               </div>
               <div className="hidden md:block rounded-[24px] bg-white/15 backdrop-blur px-5 py-4 text-sm text-white/90 border border-white/20">
