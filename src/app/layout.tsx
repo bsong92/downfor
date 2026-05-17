@@ -18,7 +18,7 @@ const ibmPlexSans = IBM_Plex_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "downfor — find people for what you're doing",
+  title: "DownFor — find people for what you're doing",
   description: "Post what you're doing. See who's down.",
 };
 

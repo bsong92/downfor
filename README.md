@@ -1,25 +1,53 @@
 # DownFor
 
-DownFor is a desktop-first activity board for finding people to do things with. It lets users post activities, request to join them, manage approvals, chat with approved attendees, and browse upcoming plans in a calendar view.
+DownFor is a desktop-first activity board for finding people to do things with. Users can post activities, request to join them, approve or decline requests, chat in a shared activity thread, and browse the community in a calendar and members view.
 
-The app is built around a real production stack:
+The app is built on a production stack:
 - Clerk for authentication
 - Supabase for persistence and row-level security
 - Open-Meteo for weather and geocoding
 - Railway for background weather refreshes
+- Resend for opt-in email notifications
 - Vercel for deployment
 
 Live app: https://downfor.vercel.app
 
 ## What’s in the app
 
-- Feed with desktop-style activity cards
-- Activity detail pages with join requests and shared chat
-- Requests dashboard with pending / approved / declined filtering
-- Calendar view for upcoming activities
-- Members directory and profile page
-- Location autocomplete and weather-aware outdoor activities
-- Photo attachments and message deletion in activity chat
+- Desktop-style feed with search, sort, category filters, weather-aware activity cards, and unread chat badges
+- Activity detail pages with join requests, request approval/rejection, cancel/reopen flows, shared chat, photo attachments, message deletion, and copy-link support
+- Requests dashboard with sent/incoming request views, status filters, unread chat indicators, and notification badges
+- Calendar view with month navigation, month picker, today shortcut, and upcoming schedule
+- Members directory and public member profile pages
+- Profile page with edit state, notification preferences, and hosted/joined activity sections
+- Location autocomplete and weather-aware outdoor activity support
+- Email notifications for request updates and chat messages, controlled by profile toggles
+
+## Core Routes
+
+- `/feed` - activity feed
+- `/create` - post a new activity
+- `/requests` - sent and incoming requests
+- `/calendar` - month view and upcoming schedule
+- `/members` - public community directory
+- `/members/[id]` - public member profile
+- `/profile` - current user profile and hosted/joined activities
+- `/activity/[id]` - activity detail, requests, and chat
+
+## Architecture Notes
+
+- Outdoor activities use Open-Meteo forecasts.
+- A Railway worker refreshes weather in the background through `/api/cron/weather-refresh`.
+- Approved attendees and the host share one activity chat thread.
+- Chat messages can include photo attachments, and senders can delete their own messages.
+- The app now includes in-app unread notifications, a bell panel, and email preferences in the profile editor.
+- Email delivery uses Resend’s test path for now, so it can send to one specific inbox tied to the active Resend account. Broad production email sending would require a verified domain and a proper production setup.
+
+## Automation and Safety
+
+- Playwright smoke tests cover the public routes, with an opt-in authenticated spec for private pages.
+- GitHub Actions runs build + browser checks on push and pull request.
+- The repository includes security hardening around profiles RLS, host-side request authorization, a rate-limited public location search endpoint, and agent deny lists for secrets.
 
 ## Quick Start
 
@@ -49,46 +77,28 @@ RESEND_FROM_EMAIL=...
 
 The repository ignores `.env*` files by default.
 
-## Core Routes
+## Testing
 
-- `/feed` - activity feed
-- `/create` - post a new activity
-- `/requests` - sent and incoming requests
-- `/calendar` - month view and upcoming schedule
-- `/members` - public community directory
-- `/profile` - current user profile and hosted/joined activities
-- `/activity/[id]` - activity detail, requests, and chat
+Manual smoke checklist: [docs/SMOKE_TESTS.md](docs/SMOKE_TESTS.md)
 
-## Weather + Chat
-
-Outdoor activities use Open-Meteo forecasts. A Railway worker refreshes weather in the background through the `/api/cron/weather-refresh` endpoint.
-
-Approved attendees and the host share one activity chat thread. Messages can include photo attachments, and senders can delete their own messages.
-
-## Manual Smoke Tests
-
-See [docs/SMOKE_TESTS.md](docs/SMOKE_TESTS.md) for the lightweight checklist I use after changes.
-
-To run the automated browser smoke tests:
+Run the public browser smoke suite:
 
 ```bash
 npx playwright install chromium
 npm run test:e2e
 ```
 
-That command runs the public smoke suite. To run the full browser suite, including the opt-in authenticated test, use:
+Run the full browser suite, including the opt-in authenticated spec:
 
 ```bash
 npm run test:e2e:all
 ```
 
-To create an authenticated Playwright state file for private-page tests:
+Create an authenticated Playwright state file for private-page tests:
 
 ```bash
 npm run auth:record
 ```
-
-After you sign in once in the browser, the saved `.auth/user.json` file can be reused for the authenticated test spec.
 
 If the local Clerk page does not render, use the production app instead:
 
@@ -96,13 +106,13 @@ If the local Clerk page does not render, use the production app instead:
 npm run auth:record:prod
 ```
 
-To run only the authenticated spec:
+Run only the authenticated spec:
 
 ```bash
 npm run test:e2e:auth
 ```
 
-To run the authenticated spec against production:
+Run the authenticated spec against production:
 
 ```bash
 npm run test:e2e:auth:prod
@@ -110,6 +120,6 @@ npm run test:e2e:auth:prod
 
 ## Notes for Reviewers
 
-- The project started from a standard Next.js scaffold, but the current app is significantly different from the boilerplate.
-- The code intentionally defers email notifications, push notifications, maps, and real-time chat presence to keep the core loop solid.
-- If you want a quick orientation, start with the feed, requests, calendar, and activity detail pages.
+- The project started from a standard Next.js scaffold, but the current app is now a full shipped product rather than a boilerplate demo.
+- The code intentionally defers push notifications, real-time presence, maps, and a broad production email setup to keep the core loop solid.
+- If you want a quick orientation, start with the feed, requests, calendar, members, and activity detail pages.

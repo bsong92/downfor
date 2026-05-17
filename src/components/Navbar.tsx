@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useUser } from "@/context/UserContext";
 import { NotificationBell } from "@/components/NotificationBell";
+import { Brand } from "@/components/Brand";
 
 const links = [
   { href: "/feed", label: "Feed" },
@@ -22,12 +23,7 @@ export function Navbar() {
   return (
     <header className="sticky top-0 z-50 bg-white/80 backdrop-blur border-b border-gray-100/80">
       <div className="max-w-7xl mx-auto px-4 lg:px-6 h-16 flex items-center justify-between">
-        <Link
-          href="/feed"
-          className="text-lg font-bold text-indigo-600 tracking-tight font-[family:var(--font-display)]"
-        >
-          downfor
-        </Link>
+        <Brand href="/feed" iconSize="h-9 w-9" textSize="text-lg" />
 
         <nav className="flex items-center gap-2 lg:gap-3">
           {links.map((l) => (

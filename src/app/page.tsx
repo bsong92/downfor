@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { hasClerkCredentials } from "@/lib/current-user";
+import { Brand } from "@/components/Brand";
 
 const examples = [
   { emoji: "⛳", text: "9 holes Saturday — anyone down?" },
@@ -14,7 +15,7 @@ export default function LandingPage() {
   return (
     <main className="min-h-screen bg-white flex flex-col">
       <header className="px-6 py-5 flex items-center justify-between max-w-3xl mx-auto w-full">
-        <span className="text-lg font-bold text-indigo-600 tracking-tight">downfor</span>
+        <Brand href="/feed" iconSize="h-10 w-10" textSize="text-xl" />
         <Link
           href={primaryHref}
           className="text-sm font-medium text-gray-600 hover:text-gray-900"
