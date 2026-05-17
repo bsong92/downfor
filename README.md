@@ -12,6 +12,12 @@ The app is built on a production stack:
 
 Live app: https://downfor.vercel.app
 
+## Screenshots
+
+![DownFor feed](public/screenshots/feed.png)
+
+![DownFor members directory](public/screenshots/members.png)
+
 ## What’s in the app
 
 - Desktop-style feed with search, sort, category filters, weather-aware activity cards, and unread chat badges

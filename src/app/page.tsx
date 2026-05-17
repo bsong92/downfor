@@ -39,13 +39,13 @@ export default function LandingPage() {
               noisy group chat and get straight to who actually wants in.
             </p>
 
-            <Link
-              href={primaryHref}
-              className="inline-flex items-center gap-2 bg-indigo-600 text-white px-6 py-3 rounded-xl font-semibold text-base hover:bg-indigo-700 transition-colors"
-            >
-              {hasClerkCredentials() ? "Sign in with Google →" : "See what&apos;s happening →"}
-            </Link>
-          </div>
+          <Link
+            href={primaryHref}
+            className="inline-flex items-center gap-2 bg-indigo-600 text-white px-6 py-3 rounded-xl font-semibold text-base hover:bg-indigo-700 transition-colors"
+          >
+            {hasClerkCredentials() ? "Sign in to get started →" : "Browse the feed →"}
+          </Link>
+        </div>
 
           <div className="space-y-3">
             <div className="rounded-[28px] border border-gray-200 bg-white shadow-[0_20px_60px_rgba(15,23,42,0.06)] p-4">
