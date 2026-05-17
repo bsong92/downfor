@@ -150,6 +150,8 @@ export default async function CalendarPage({
   const nextMonth = shiftMonth(selectedMonth, 1);
   const canGoPrev = monthKeyToString(selectedMonth) !== monthKeyToString(MIN_MONTH);
   const canGoNext = monthKeyToString(selectedMonth) !== monthKeyToString(MAX_MONTH);
+  const todayMonth = clampMonth(getMonthKey(now));
+  const todayMonthKey = monthKeyToString(todayMonth);
 
   const { data } = await supabase
     .from("activities")
@@ -209,6 +211,7 @@ export default async function CalendarPage({
                 canGoPrev={canGoPrev}
                 canGoNext={canGoNext}
                 upcomingCount={upcomingActivities.length}
+                todayMonth={todayMonthKey}
                 monthOptions={MONTH_OPTIONS}
               />
             </div>

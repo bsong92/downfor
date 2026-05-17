@@ -24,6 +24,7 @@ export function CalendarControls({
   canGoPrev,
   canGoNext,
   upcomingCount,
+  todayMonth,
   monthOptions,
 }: {
   selectedMonth: MonthKey;
@@ -32,6 +33,7 @@ export function CalendarControls({
   canGoPrev: boolean;
   canGoNext: boolean;
   upcomingCount: number;
+  todayMonth: string | null;
   monthOptions: MonthOption[];
 }) {
   const router = useRouter();
@@ -68,6 +70,19 @@ export function CalendarControls({
           </span>
         )}
       </div>
+      {todayMonth && currentValue !== todayMonth ? (
+        <button
+          type="button"
+          onClick={() => router.push(`/calendar?month=${todayMonth}`)}
+          className="rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700 transition-colors"
+        >
+          Today
+        </button>
+      ) : (
+        <span className="rounded-full border border-gray-100 bg-gray-50 px-4 py-2 text-sm font-semibold text-gray-300">
+          Today
+        </span>
+      )}
       <div className="min-w-[12rem]">
         <label className="sr-only" htmlFor="calendar-month">
           Select month
