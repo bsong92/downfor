@@ -39,13 +39,36 @@ export default function LandingPage() {
               noisy group chat and get straight to who actually wants in.
             </p>
 
-          <Link
-            href={primaryHref}
-            className="inline-flex items-center gap-2 bg-indigo-600 text-white px-6 py-3 rounded-xl font-semibold text-base hover:bg-indigo-700 transition-colors"
-          >
-            {hasClerkCredentials() ? "Sign in to get started →" : "Browse the feed →"}
-          </Link>
-        </div>
+            <Link
+              href={primaryHref}
+              className="inline-flex items-center gap-2 bg-indigo-600 text-white px-6 py-3 rounded-xl font-semibold text-base hover:bg-indigo-700 transition-colors"
+            >
+              {hasClerkCredentials() ? "Sign in to get started →" : "Browse the feed →"}
+            </Link>
+
+            <div className="mt-8 rounded-[28px] border border-gray-200 bg-white/90 p-5 shadow-[0_16px_50px_rgba(15,23,42,0.05)]">
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-indigo-600 mb-3">
+                How it works
+              </p>
+              <div className="grid gap-3 sm:grid-cols-3">
+                {[
+                  "Browse the feed and find something that fits your day.",
+                  "Post your own activity or request to join someone else.",
+                  "Use chat, requests, and notifications to coordinate the plan.",
+                ].map((step, index) => (
+                  <div
+                    key={step}
+                    className="rounded-2xl border border-gray-100 bg-gray-50 px-4 py-4"
+                  >
+                    <div className="mb-2 inline-flex h-7 w-7 items-center justify-center rounded-full bg-indigo-600 text-sm font-semibold text-white">
+                      {index + 1}
+                    </div>
+                    <p className="text-sm leading-6 text-gray-600">{step}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
 
           <div className="space-y-3">
             <div className="rounded-[28px] border border-gray-200 bg-white shadow-[0_20px_60px_rgba(15,23,42,0.06)] p-4">
