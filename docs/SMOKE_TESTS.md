@@ -35,3 +35,9 @@ Run these after meaningful changes.
 
 - Open `/calendar`.
 - Confirm activities appear in the grid and the schedule list.
+- Click the next/previous month arrows and confirm the month changes without a server error.
+
+## Members
+
+- Open `/members`.
+- Click a public member card and confirm the public profile page loads.

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 type MonthKey = {
@@ -40,24 +41,32 @@ export function CalendarControls({
     <div className="flex items-center gap-3">
       <div className="text-sm text-gray-500">{upcomingCount} upcoming activities</div>
       <div className="flex items-center gap-1 rounded-full border border-gray-200 bg-white p-1">
-        <button
-          type="button"
-          onClick={() => canGoPrev && router.push(`/calendar?month=${monthKeyToString(prevMonth)}`)}
-          disabled={!canGoPrev}
-          className="rounded-full px-3 py-1.5 text-sm font-semibold text-gray-700 hover:bg-gray-100 transition-colors disabled:text-gray-300 disabled:hover:bg-transparent"
-          aria-label="Previous month"
-        >
-          ←
-        </button>
-        <button
-          type="button"
-          onClick={() => canGoNext && router.push(`/calendar?month=${monthKeyToString(nextMonth)}`)}
-          disabled={!canGoNext}
-          className="rounded-full px-3 py-1.5 text-sm font-semibold text-gray-700 hover:bg-gray-100 transition-colors disabled:text-gray-300 disabled:hover:bg-transparent"
-          aria-label="Next month"
-        >
-          →
-        </button>
+        {canGoPrev ? (
+          <Link
+            href={`/calendar?month=${monthKeyToString(prevMonth)}`}
+            className="rounded-full px-3 py-1.5 text-sm font-semibold text-gray-700 hover:bg-gray-100 transition-colors"
+            aria-label="Previous month"
+          >
+            ←
+          </Link>
+        ) : (
+          <span className="rounded-full px-3 py-1.5 text-sm font-semibold text-gray-300" aria-label="Previous month">
+            ←
+          </span>
+        )}
+        {canGoNext ? (
+          <Link
+            href={`/calendar?month=${monthKeyToString(nextMonth)}`}
+            className="rounded-full px-3 py-1.5 text-sm font-semibold text-gray-700 hover:bg-gray-100 transition-colors"
+            aria-label="Next month"
+          >
+            →
+          </Link>
+        ) : (
+          <span className="rounded-full px-3 py-1.5 text-sm font-semibold text-gray-300" aria-label="Next month">
+            →
+          </span>
+        )}
       </div>
       <div className="min-w-[12rem]">
         <label className="sr-only" htmlFor="calendar-month">

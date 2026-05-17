@@ -76,6 +76,12 @@ npx playwright install chromium
 npm run test:e2e
 ```
 
+That command runs the public smoke suite. To run the full browser suite, including the opt-in authenticated test, use:
+
+```bash
+npm run test:e2e:all
+```
+
 To create an authenticated Playwright state file for private-page tests:
 
 ```bash
