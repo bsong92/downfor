@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { Navbar } from "@/components/Navbar";
 import { FAB } from "@/components/FAB";
+import { EmptyState } from "@/components/EmptyState";
 import { getCategoryConfig, getCategoryGradient } from "@/components/CategoryBadge";
 import { createServiceClient } from "@/lib/supabase-server";
 import { getRequiredProfile } from "@/lib/current-user";
@@ -229,33 +230,22 @@ export default async function RequestsPage({
             </div>
 
             {visibleSentRequests.length === 0 ? (
-              <div className="rounded-[24px] border border-dashed border-gray-200 bg-gray-50 p-8 text-center">
-                <p className="font-semibold text-gray-900 mb-2">
-                  {activeStatus === "all"
+              <EmptyState
+                icon="📨"
+                title={
+                  activeStatus === "all"
                     ? "No requests yet"
-                    : `No ${getFilterLabel(activeStatus).toLowerCase()} requests`}
-                </p>
-                <p className="text-sm text-gray-500 mb-4">
-                  {activeStatus === "all"
+                    : `No ${getFilterLabel(activeStatus).toLowerCase()} requests`
+                }
+                description={
+                  activeStatus === "all"
                     ? "Browse the feed and request to join an activity to start tracking here."
-                    : "Try another status filter to see more requests."}
-                </p>
-                {activeStatus === "all" ? (
-                  <Link
-                    href="/feed"
-                    className="inline-flex items-center justify-center rounded-full bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors"
-                  >
-                    Browse feed
-                  </Link>
-                ) : (
-                  <Link
-                    href="/requests"
-                    className="inline-flex items-center justify-center rounded-full bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors"
-                  >
-                    Show all
-                  </Link>
-                )}
-              </div>
+                    : "Try another status filter to see more requests."
+                }
+                actionHref={activeStatus === "all" ? "/feed" : "/requests"}
+                actionLabel={activeStatus === "all" ? "Browse feed" : "Show all"}
+                className="bg-gray-50/70"
+              />
             ) : (
               <div className="space-y-4">
                 {visibleSentRequests.map((request) => {
@@ -381,18 +371,14 @@ export default async function RequestsPage({
             </div>
 
             {hostedActivities.length === 0 ? (
-              <div className="rounded-[24px] border border-dashed border-gray-200 bg-gray-50 p-8 text-center">
-                <p className="font-semibold text-gray-900 mb-2">No hosted activities yet</p>
-                <p className="text-sm text-gray-500 mb-4">
-                  Post an activity to start receiving requests here.
-                </p>
-                <Link
-                  href="/create"
-                  className="inline-flex items-center justify-center rounded-full bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors"
-                >
-                  Post activity
-                </Link>
-              </div>
+              <EmptyState
+                icon="🪧"
+                title="No hosted activities yet"
+                description="Post an activity to start receiving requests here."
+                actionHref="/create"
+                actionLabel="Post activity"
+                className="bg-gray-50/70"
+              />
             ) : (
               <div className="space-y-4">
                 {hostedActivities.map((activity) => {
@@ -484,7 +470,7 @@ export default async function RequestsPage({
                               </div>
                             )}
 
-                            {activeStatus !== "all" && filteredRequests.length === 0 ? (
+                        {activeStatus !== "all" && filteredRequests.length === 0 ? (
                               <div className="rounded-2xl border border-dashed border-gray-200 bg-gray-50 px-4 py-5">
                                 <p className="text-sm font-medium text-gray-900 mb-1">
                                   No {getFilterLabel(activeStatus).toLowerCase()} requests

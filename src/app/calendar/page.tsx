@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { Navbar } from "@/components/Navbar";
 import { FAB } from "@/components/FAB";
+import { EmptyState } from "@/components/EmptyState";
 import { getCategoryConfig, getCategoryGradient } from "@/components/CategoryBadge";
 import { createServiceClient } from "@/lib/supabase-server";
 import { formatInTimeZone, getDateKeyInTimeZone, getDateLabelInTimeZone } from "@/lib/date-time";
@@ -294,18 +295,14 @@ export default async function CalendarPage({
             </div>
 
             {upcomingActivities.length === 0 ? (
-              <div className="rounded-[24px] border border-dashed border-gray-200 bg-gray-50 p-8 text-center">
-                <p className="font-semibold text-gray-900 mb-2">No upcoming activities</p>
-                <p className="text-sm text-gray-500 mb-4">
-                  Post something to populate the calendar.
-                </p>
-                <Link
-                  href="/create"
-                  className="inline-flex items-center justify-center rounded-full bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors"
-                >
-                  Post activity
-                </Link>
-              </div>
+              <EmptyState
+                icon="🗓️"
+                title="No upcoming activities"
+                description="This month is empty. Add a post and the calendar will start to feel alive."
+                actionHref="/create"
+                actionLabel="Post activity"
+                className="bg-gray-50/70"
+              />
             ) : (
               <div className="space-y-4">
                 {upcomingActivities.map((activity) => {

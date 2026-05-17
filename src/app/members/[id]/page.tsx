@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { EmptyState } from "@/components/EmptyState";
 import { Navbar } from "@/components/Navbar";
 import { getCategoryConfig } from "@/components/CategoryBadge";
 import { getStoredLocationLabel, getStoredLocationTimezone } from "@/lib/location";
@@ -118,9 +119,12 @@ export default async function MemberProfilePage({
           </div>
 
           {hostedActivities.length === 0 ? (
-            <div className="rounded-[28px] border border-dashed border-gray-200 bg-white p-8 text-center text-gray-500">
-              No active public activities yet.
-            </div>
+            <EmptyState
+              icon="📭"
+              title="No active public activities yet"
+              description="This member has not posted any active public activities."
+              className="bg-white/80"
+            />
           ) : (
             <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
               {hostedActivities.map((activity) => (

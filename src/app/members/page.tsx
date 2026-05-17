@@ -1,5 +1,6 @@
 import { Navbar } from "@/components/Navbar";
 import { CategoryBadge } from "@/components/CategoryBadge";
+import { EmptyState } from "@/components/EmptyState";
 import { createServiceClient } from "@/lib/supabase-server";
 import type { Profile } from "@/types/database";
 import Link from "next/link";
@@ -33,12 +34,14 @@ export default async function MembersPage() {
         </div>
 
         {publicMembers.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-gray-400 mb-2">No public members yet</p>
-            <p className="text-sm text-gray-500">
-              Join and enable "Show on Members page" in your profile to appear here
-            </p>
-          </div>
+          <EmptyState
+            icon="👥"
+            title="No public members yet"
+            description='Join and toggle "Show on Members page" in your profile to appear here.'
+            actionHref="/profile"
+            actionLabel="Edit profile"
+            className="mt-6 bg-gray-50/70"
+          />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
             {publicMembers.map((member) => (

@@ -7,6 +7,7 @@ import { CancelJoinRequestButton } from "@/components/CancelJoinRequestButton";
 import { DeleteActivityButton } from "@/components/DeleteActivityButton";
 import { DeleteMessageButton } from "@/components/DeleteMessageButton";
 import { RequestStatusButton } from "@/components/RequestStatusButton";
+import { EmptyState } from "@/components/EmptyState";
 import { createServiceClient } from "@/lib/supabase-server";
 import { getRequiredProfile } from "@/lib/current-user";
 import {
@@ -321,14 +322,16 @@ export default async function ActivityDetailPage({
           {canChat ? (
             <>
               {messages.length === 0 ? (
-                <div className="rounded-[24px] border border-dashed border-gray-200 bg-gray-50 p-6 text-center">
-                  <p className="font-semibold text-gray-900 mb-2">No messages yet</p>
-                  <p className="text-sm text-gray-500">
-                    {isMyActivity
+                <EmptyState
+                  icon="💬"
+                  title="No messages yet"
+                  description={
+                    isMyActivity
                       ? "Welcome the group and start the conversation here."
-                      : "Be the first to say hi once you’re approved."}
-                  </p>
-                </div>
+                      : "Be the first to say hi once you’re approved."
+                  }
+                  className="bg-gray-50/70"
+                />
               ) : (
                 <div className="space-y-3 max-h-[26rem] overflow-y-auto pr-1">
                   {messages.map((message) => {
@@ -446,12 +449,12 @@ export default async function ActivityDetailPage({
               </form>
             </>
           ) : (
-            <div className="rounded-[24px] border border-dashed border-gray-200 bg-gray-50 p-6 text-center">
-              <p className="font-semibold text-gray-900 mb-2">Chat unlocks after approval</p>
-              <p className="text-sm text-gray-500">
-                Once your request is approved, you’ll join the shared activity thread with the host and other approved attendees.
-              </p>
-            </div>
+            <EmptyState
+              icon="🔒"
+              title="Chat unlocks after approval"
+              description="Once your request is approved, you’ll join the shared thread with the host and other approved attendees."
+              className="bg-gray-50/70"
+            />
           )}
         </section>
 
@@ -468,7 +471,12 @@ export default async function ActivityDetailPage({
             </h2>
 
             {requests.length === 0 ? (
-              <p className="text-sm text-gray-400 py-4">No requests yet.</p>
+              <div className="rounded-2xl border border-dashed border-gray-200 bg-gray-50 px-4 py-5">
+                <p className="text-sm font-medium text-gray-900 mb-1">No requests yet</p>
+                <p className="text-sm text-gray-500">
+                  People who want to join will show up here once they start requesting.
+                </p>
+              </div>
             ) : (
               <div className="space-y-3">
                 {pendingRequests.map((req) => (

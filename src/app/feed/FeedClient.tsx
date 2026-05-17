@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { FeedItem } from "@/components/FeedItem";
+import { EmptyState } from "@/components/EmptyState";
 import { getCategoryConfig, ALL_CATEGORIES, normalizeCategory } from "@/components/CategoryBadge";
 import { FAB } from "@/components/FAB";
 import { getStoredLocationTimezone } from "@/lib/location";
@@ -173,26 +174,20 @@ export function FeedClient({
 
       {/* Feed */}
       {displayActivities.length === 0 ? (
-        <div className="text-center py-20">
-          <p className="text-lg font-semibold text-gray-900 mb-2">
-            No {activeTab} activities yet
-          </p>
-          <p className="text-gray-500 mb-6">
-            {activeCategory
-              ? `Be the first to post a ${activeCategory} activity`
+        <EmptyState
+          icon={activeTab === "upcoming" ? "✨" : "🕒"}
+          title={`No ${activeTab} activities yet`}
+          description={
+            activeCategory
+              ? `Be the first to post a ${activeCategory} activity.`
               : activeTab === "upcoming"
-                ? "Be the first to post something"
-                : "No past activities to show"}
-          </p>
-          {activeTab === "upcoming" && (
-            <Link
-              href="/create"
-              className="inline-block bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-lg font-semibold transition-colors"
-            >
-              Create activity
-            </Link>
-          )}
-        </div>
+                ? "Be the first to post something and start the feed."
+                : "There are no past activities to show right now."
+          }
+          actionHref={activeTab === "upcoming" ? "/create" : undefined}
+          actionLabel={activeTab === "upcoming" ? "Create activity" : undefined}
+          className="mt-8 bg-white/80"
+        />
       ) : (
         <div className="grid gap-6 xl:grid-cols-2 items-stretch">
           {sortedActivities.map((activity) => (
