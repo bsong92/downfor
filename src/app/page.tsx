@@ -13,7 +13,7 @@ export default function LandingPage() {
   const primaryHref = hasClerkCredentials() ? "/sign-in" : "/feed";
 
   return (
-    <main className="min-h-screen bg-white flex flex-col">
+    <main className="min-h-screen bg-transparent flex flex-col">
       <header className="px-6 py-5 flex items-center justify-between max-w-7xl mx-auto w-full">
         <Brand href="/feed" iconSize="h-10 w-10" textSize="text-xl" />
         <Link
